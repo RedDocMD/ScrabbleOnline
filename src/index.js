@@ -16,7 +16,11 @@ class Board extends React.Component {
         for (let i = 0; i < this.props.rows; i++) {
             var row = [];
             for (let j = 0; j < this.props.columns; j++) {
-                row.push(<td key={i + " " + j}><Cell /></td>);
+                if (i === 0 && j === 3) {
+                    row.push(<td key={i + " " + j}><Cell className="double-letter" /></td>)
+                } else {
+                    row.push(<td key={i + " " + j}><Cell className="normal"/></td>);
+                }
             }
             rows.push(<tr key={i + ''}>{row}</tr>);
         }
@@ -34,9 +38,7 @@ class Board extends React.Component {
 class Cell extends React.Component {
     render() {
         return (
-            <span className="cell">
-                All izz well!
-            </span>
+            <div className={"cell " + this.props.className} />
         );
     }
 }
