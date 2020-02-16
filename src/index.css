@@ -6,6 +6,15 @@
     margin: auto;
 }
 
+.tile {
+    width: 35px;
+    height: 35px;
+    padding: 6.033px;
+    background-color: #fceabe;
+    margin: auto;
+    font-size: larger;
+}
+
 .double-letter {
     background-image: url('./images/dbl_ltr.png');
 }

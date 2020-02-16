@@ -5,7 +5,11 @@ import './index.css';
 class App extends React.Component {
     render() {
         return (
-            <Board rows="15" columns="15" />
+            <div>
+                <Board rows="15" columns="15" />
+                <Tile letter="A"/>
+                <Tile letter="B"/>
+            </div>
         );
     }
 }
@@ -83,6 +87,14 @@ class Cell extends React.Component {
     render() {
         return (
             <div className={"cell " + this.props.className} />
+        );
+    }
+}
+
+class Tile extends React.Component {
+    render() {
+        return (
+            <div className="tile">{this.props.letter}</div>
         );
     }
 }
