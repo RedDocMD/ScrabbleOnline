@@ -13,9 +13,18 @@ class App extends React.Component {
 function get_cell_types(size) {
     let types = new Array(size);
     for (let i = 0; i < size; i++) types[i] = new Array(size);
+
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
             types[i][i] = "normal";
+            if ((i === 0 || i === 14) && (j === 3 || j === 11)) types[i][j] = "double-letter";
+            if ((j === 0 || j === 14) && (i === 3 || i === 11)) types[i][j] = "double-letter";
+            if ((i === 1 || i === 13) && (j === 5 || j === 9)) types[i][j] = "triple-letter";
+            if ((j === 1 || j === 13) && (i === 5 || i === 9)) types[i][j] = "triple-letter";
+            if ((i === 2 || i === 12) && (j === 6 || j === 8)) types[i][j] = "double-letter";
+            if ((j === 2 || j === 12) && (i === 6 || i === 8)) types[i][j] = "double-letter";
+            if ((i === 3 || i === 11) && (j === 7)) types[i][j] = "double-letter";
+            if ((j === 3 || j === 11) && (i === 7)) types[i][j] = "double-letter";
         }
     }
 
@@ -34,7 +43,7 @@ function get_cell_types(size) {
     types[0][Math.floor(size / 2)] = "triple-word";
     types[0][size - 1] = "triple-word";
     types[Math.floor(size / 2)][0] = "triple-word";
-    types[Math.floor(size / 2)][14] = "triple-word";
+    types[Math.floor(size / 2)][size - 1] = "triple-word";
     types[size - 1][0] = "triple-word";
     types[size - 1][Math.floor(size / 2)] = "triple-word";
     types[size - 1][size - 1] = "triple-word";
@@ -65,6 +74,11 @@ class Board extends React.Component {
 }
 
 class Cell extends React.Component {
+    constructor(props) {
+        super(props)
+        this.type = this.props.className;
+    }
+
     render() {
         return (
             <div className={"cell " + this.props.className} />
