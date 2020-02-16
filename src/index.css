@@ -22,6 +22,10 @@
     background-image: url('./images/tpl_wrd.png');
 }
 
+.star {
+    background-image: url('./images/star.png');
+}
+
 #board-table td {
     border: 5px solid #a8d7c3;
     padding: 0px;
