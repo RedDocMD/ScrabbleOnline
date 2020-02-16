@@ -10,17 +10,46 @@ class App extends React.Component {
     }
 }
 
+function get_cell_types(size) {
+    let types = new Array(size);
+    for (let i = 0; i < size; i++) types[i] = new Array(size);
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+            types[i][i] = "normal";
+        }
+    }
+
+    for (let i = 1; i < size - 1; i++) {
+        for (let j = 1; j < size - 1; j++) {
+            if (i === j || i + j === size - 1) {
+                if (i <= 4 || i >= 10) types[i][j] = "double-word";
+                else if (i === 7) types[i][j] = "star";
+                else if (i === 6 || i === 8) types[i][j] = "double-letter";
+                else types[i][j] = "triple-letter";
+            }
+        }
+    }
+
+    types[0][0] = "triple-word";
+    types[0][Math.floor(size / 2)] = "triple-word";
+    types[0][size - 1] = "triple-word";
+    types[Math.floor(size / 2)][0] = "triple-word";
+    types[Math.floor(size / 2)][14] = "triple-word";
+    types[size - 1][0] = "triple-word";
+    types[size - 1][Math.floor(size / 2)] = "triple-word";
+    types[size - 1][size - 1] = "triple-word";
+
+    return types;
+}
+
 class Board extends React.Component {
     render() {
-        var rows = [];
+        let rows = [];
+        let types = get_cell_types(this.props.rows);
         for (let i = 0; i < this.props.rows; i++) {
-            var row = [];
+            let row = [];
             for (let j = 0; j < this.props.columns; j++) {
-                if (i === 0 && j === 3) {
-                    row.push(<td key={i + " " + j}><Cell className="double-letter" /></td>)
-                } else {
-                    row.push(<td key={i + " " + j}><Cell className="normal"/></td>);
-                }
+                row.push(<td key={i + " " + j}><Cell className={types[i][j]} /></td>);
             }
             rows.push(<tr key={i + ''}>{row}</tr>);
         }

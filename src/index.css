@@ -10,6 +10,18 @@
     background-image: url('./images/dbl_ltr.png');
 }
 
+.double-word {
+    background-image: url('./images/dbl_wrd.png');
+}
+
+.triple-letter {
+    background-image: url('./images/tpl_ltr.png');
+}
+
+.triple-word{
+    background-image: url('./images/tpl_wrd.png');
+}
+
 #board-table td {
     border: 5px solid #a8d7c3;
     padding: 0px;
