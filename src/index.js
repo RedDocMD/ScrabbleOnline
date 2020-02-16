@@ -75,8 +75,9 @@ class Board extends React.Component {
 
 class Cell extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
         this.type = this.props.className;
+        if (this.type === "star") this.type = "double-letter";
     }
 
     render() {
