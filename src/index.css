@@ -46,6 +46,7 @@
     padding-left: 5px;
     padding-right: 5px;
     background-color: #1ca289;
+    box-shadow: -5px -5px 1px #206659 inset;
 }
 
 .double-letter {

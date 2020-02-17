@@ -85,19 +85,41 @@ class Cell extends React.Component {
         super(props);
         this.type = this.props.className;
         if (this.type === "star") this.type = "double-letter";
+        this.dragOver = this.dragOver.bind(this);
+        this.dropOn = this.dropOn.bind(this);
+        this.state = { content: null };
+    }
+
+    dragOver(ev) {
+        ev.preventDefault();
+    }
+
+    dropOn(ev) {
+        const droppedItem = ev.dataTransfer.getData("drag-item");
+        if (droppedItem) {
+            this.setState({ content: droppedItem });
+        }
     }
 
     render() {
-        return (
-            <div className={"cell " + this.props.className} />
-        );
+        if (this.state.content) {
+            return (
+                <Tile letter={this.state.content} dataItem={this.state.content} value={0} />
+            );
+        } else {
+            return (
+                <div className={"cell " + this.props.className} onDragOver={this.dragOver} onDrop={this.dropOn} />
+            );
+        }
     }
 }
 
 class Tile extends React.Component {
     render() {
         return (
-            <span className="tile">
+            <span className="tile" draggable onDragStart={(ev => {
+                ev.dataTransfer.setData("drag-item", this.props.dataItem);
+            })}>
                 <div className="tile-text">{this.props.letter}</div>
                 <div className="tile-value">{this.props.value}</div>
             </span>
@@ -110,7 +132,7 @@ class Rack extends React.Component {
     render() {
         let tiles = [];
         this.props.letters.forEach(letter => {
-            tiles.push(<Tile letter={letter.letter} key={letter} value={letter.value} />);
+            tiles.push(<Tile letter={letter.letter} key={letter.letter} value={letter.value} dataItem={letter.letter} />);
         });
         return (
             <div className="rack">
