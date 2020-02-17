@@ -4,7 +4,10 @@ import './index.css';
 
 class App extends React.Component {
     render() {
-        let letters = ["A", "B", "C", "D"];
+        let letters = [{ letter: "A", value: 1 },
+        { letter: "B", value: 3 },
+        { letter: "C", value: 3 },
+        { letter: "D", value: 2 }];
         return (
             <div>
                 <Board rows="15" columns="15" />
@@ -94,7 +97,10 @@ class Cell extends React.Component {
 class Tile extends React.Component {
     render() {
         return (
-            <span className="tile">{this.props.letter}</span>
+            <span className="tile">
+                <div className="tile-text">{this.props.letter}</div>
+                <div className="tile-value">{this.props.value}</div>
+            </span>
         );
     }
 }
@@ -104,7 +110,7 @@ class Rack extends React.Component {
     render() {
         let tiles = [];
         this.props.letters.forEach(letter => {
-            tiles.push(<Tile letter={letter} key={letter}/>);
+            tiles.push(<Tile letter={letter.letter} key={letter} value={letter.value} />);
         });
         return (
             <div className="rack">
