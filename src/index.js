@@ -2,6 +2,35 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+const letter_values = {
+    "A" : { letter: "A", value: 1 },
+    "B" : { letter: "B", value: 3 },
+    "C" : { letter: "C", value: 3 },
+    "D" : { letter: "D", value: 2 },
+    "E" : { letter: "E", value: 1 },
+    "F" : { letter: "F", value: 4 },
+    "G" : { letter: "G", value: 2 },
+    "H" : { letter: "H", value: 4 },
+    "I" : { letter: "I", value: 1 },
+    "J" : { letter: "J", value: 8 },
+    "K" : { letter: "K", value: 5 },
+    "L" : { letter: "L", value: 1 },
+    "M" : { letter: "M", value: 3 },
+    "N" : { letter: "N", value: 1 },
+    "O" : { letter: "O", value: 1 },
+    "P" : { letter: "P", value: 3 },
+    "Q" : { letter: "Q", value: 10 },
+    "R" : { letter: "R", value: 1 },
+    "S" : { letter: "S", value: 1 },
+    "T" : { letter: "T", value: 1 },
+    "U" : { letter: "U", value: 1 },
+    "V" : { letter: "V", value: 4 },
+    "W" : { letter: "W", value: 4 },
+    "X" : { letter: "X", value: 8 },
+    "Y" : { letter: "Y", value: 4 },
+    "Z" : { letter: "Z", value: 10 }
+}
+
 class App extends React.Component {
     render() {
         let letters = [{ letter: "A", value: 1 },
