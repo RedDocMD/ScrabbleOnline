@@ -3,47 +3,32 @@ import ReactDOM from 'react-dom';
 import './index.css';
 
 const letter_values = {
-    "A" : { letter: "A", value: 1 },
-    "B" : { letter: "B", value: 3 },
-    "C" : { letter: "C", value: 3 },
-    "D" : { letter: "D", value: 2 },
-    "E" : { letter: "E", value: 1 },
-    "F" : { letter: "F", value: 4 },
-    "G" : { letter: "G", value: 2 },
-    "H" : { letter: "H", value: 4 },
-    "I" : { letter: "I", value: 1 },
-    "J" : { letter: "J", value: 8 },
-    "K" : { letter: "K", value: 5 },
-    "L" : { letter: "L", value: 1 },
-    "M" : { letter: "M", value: 3 },
-    "N" : { letter: "N", value: 1 },
-    "O" : { letter: "O", value: 1 },
-    "P" : { letter: "P", value: 3 },
-    "Q" : { letter: "Q", value: 10 },
-    "R" : { letter: "R", value: 1 },
-    "S" : { letter: "S", value: 1 },
-    "T" : { letter: "T", value: 1 },
-    "U" : { letter: "U", value: 1 },
-    "V" : { letter: "V", value: 4 },
-    "W" : { letter: "W", value: 4 },
-    "X" : { letter: "X", value: 8 },
-    "Y" : { letter: "Y", value: 4 },
-    "Z" : { letter: "Z", value: 10 }
-}
-
-class App extends React.Component {
-    render() {
-        let letters = [{ letter: "A", value: 1 },
-        { letter: "B", value: 3 },
-        { letter: "C", value: 3 },
-        { letter: "D", value: 2 }];
-        return (
-            <div>
-                <Board rows="15" columns="15" />
-                <Rack letters={letters} />
-            </div>
-        );
-    }
+    "A": { letter: "A", value: 1 },
+    "B": { letter: "B", value: 3 },
+    "C": { letter: "C", value: 3 },
+    "D": { letter: "D", value: 2 },
+    "E": { letter: "E", value: 1 },
+    "F": { letter: "F", value: 4 },
+    "G": { letter: "G", value: 2 },
+    "H": { letter: "H", value: 4 },
+    "I": { letter: "I", value: 1 },
+    "J": { letter: "J", value: 8 },
+    "K": { letter: "K", value: 5 },
+    "L": { letter: "L", value: 1 },
+    "M": { letter: "M", value: 3 },
+    "N": { letter: "N", value: 1 },
+    "O": { letter: "O", value: 1 },
+    "P": { letter: "P", value: 3 },
+    "Q": { letter: "Q", value: 10 },
+    "R": { letter: "R", value: 1 },
+    "S": { letter: "S", value: 1 },
+    "T": { letter: "T", value: 1 },
+    "U": { letter: "U", value: 1 },
+    "V": { letter: "V", value: 4 },
+    "W": { letter: "W", value: 4 },
+    "X": { letter: "X", value: 8 },
+    "Y": { letter: "Y", value: 4 },
+    "Z": { letter: "Z", value: 10 }
 }
 
 function get_cell_types(size) {
@@ -94,7 +79,7 @@ class Board extends React.Component {
         for (let i = 0; i < this.props.rows; i++) {
             let row = [];
             for (let j = 0; j < this.props.columns; j++) {
-                row.push(<td key={i + " " + j}><Cell className={types[i][j]} /></td>);
+                row.push(<td key={i + " " + j}><Cell className={types[i][j]} elementAdded={this.props.elementAdded} /></td>);
             }
             rows.push(<tr key={i + ''}>{row}</tr>);
         }
@@ -124,16 +109,19 @@ class Cell extends React.Component {
     }
 
     dropOn(ev) {
-        const droppedItem = ev.dataTransfer.getData("drag-item");
+        let droppedLetter = ev.dataTransfer.getData("drag-item");
+        let fromRack = ev.dataTransfer.getData("from-rack");
+        let droppedItem = letter_values[droppedLetter];
         if (droppedItem) {
             this.setState({ content: droppedItem });
         }
+        this.props.elementAdded(droppedLetter, fromRack);
     }
 
     render() {
         if (this.state.content) {
             return (
-                <Tile letter={this.state.content} dataItem={this.state.content} value={0} />
+                <Tile letter={this.state.content.letter} dataItem={this.state.content.letter} value={this.state.content.value} />
             );
         } else {
             return (
@@ -144,11 +132,19 @@ class Cell extends React.Component {
 }
 
 class Tile extends React.Component {
+    constructor(props) {
+        super(props);
+        this.dragStart = this.dragStart.bind(this);
+    }
+
+    dragStart(ev) {
+        ev.dataTransfer.setData("drag-item", this.props.dataItem);
+        ev.dataTransfer.setData("from-rack", this.props.rack);
+    }
+
     render() {
         return (
-            <span className="tile" draggable onDragStart={(ev => {
-                ev.dataTransfer.setData("drag-item", this.props.dataItem);
-            })}>
+            <span className="tile" draggable onDragStart={this.dragStart}>
                 <div className="tile-text">{this.props.letter}</div>
                 <div className="tile-value">{this.props.value}</div>
             </span>
@@ -158,14 +154,81 @@ class Tile extends React.Component {
 
 class Rack extends React.Component {
 
+    constructor(props) {
+        super(props);
+        this.state = { letters: this.props.letters };
+    }
+
+    removeTileHandler(letter) {
+        let old_letters = this.state.letters;
+        let new_letters = old_letters.slice();
+        for (let i = 0; i < new_letters.length; i++) {
+            if (new_letters[i] === letter) {
+                new_letters.splice(i, 1);
+                break;
+            }
+        }
+        this.setState({ letters: new_letters });
+    }
+
     render() {
         let tiles = [];
-        this.props.letters.forEach(letter => {
-            tiles.push(<Tile letter={letter.letter} key={letter.letter} value={letter.value} dataItem={letter.letter} />);
+        this.state.letters.forEach(letter => {
+            let letter_obj = letter_values[letter];
+            tiles.push(<Tile letter={letter_obj.letter} key={letter + " " + this.props.id} value={letter_obj.value} dataItem={letter} rack={this.props.id} />);
         });
         return (
             <div className="rack">
                 {tiles}
+            </div>
+        );
+    }
+}
+
+class App extends React.Component {
+    constructor(props) {
+        super(props);
+        let letters = ["A", "B", "C", "D"];
+        let racks = {};
+        racks["rack-1"] = { rack: <Rack letters={letters} id="rack-1" />, letters: letters };
+        this.state = { racks: racks };
+        this.removeTileFunc = this.removeTileFunc.bind(this);
+    }
+
+    removeTileFunc(letter, rack) {
+        console.log("Hello");
+        let rackElement = this.state.racks[rack];
+        console.log(rackElement);
+        let old_letters = rackElement.letters;
+        let new_letters = old_letters.slice();
+        console.log(new_letters);
+        for (let i = 0; i < new_letters.length; i++) {
+            if (new_letters[i] === letter) {
+                new_letters.splice(i, 1);
+                break;
+            }
+        }
+        console.log(new_letters);
+        let newState = {};
+        for (let key in this.state.racks) {
+            if (this.state.racks.hasOwnProperty(key)) {
+                if (key === rack) {
+                    newState[key] = { rack: <Rack letters={new_letters} id={key} />, letters: new_letters };
+                } else {
+                    newState[key] = this.state.racks[key];
+                }
+            }
+        }
+        console.log(newState);
+        this.setState(newState);
+    }
+
+    render() {
+        let board = <Board rows="15" columns="15" elementAdded={this.removeTileFunc} />;
+        return (
+            <div>
+                {board}
+                {this.state.racks["rack-1"].rack}
             </div>
         );
     }
