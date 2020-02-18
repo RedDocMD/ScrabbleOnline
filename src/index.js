@@ -153,27 +153,9 @@ class Tile extends React.Component {
 }
 
 class Rack extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.state = { letters: this.props.letters };
-    }
-
-    removeTileHandler(letter) {
-        let old_letters = this.state.letters;
-        let new_letters = old_letters.slice();
-        for (let i = 0; i < new_letters.length; i++) {
-            if (new_letters[i] === letter) {
-                new_letters.splice(i, 1);
-                break;
-            }
-        }
-        this.setState({ letters: new_letters });
-    }
-
     render() {
         let tiles = [];
-        this.state.letters.forEach(letter => {
+        this.props.letters.forEach(letter => {
             let letter_obj = letter_values[letter];
             tiles.push(<Tile letter={letter_obj.letter} key={letter + " " + this.props.id} value={letter_obj.value} dataItem={letter} rack={this.props.id} />);
         });
@@ -196,31 +178,28 @@ class App extends React.Component {
     }
 
     removeTileFunc(letter, rack) {
-        console.log("Hello");
-        let rackElement = this.state.racks[rack];
-        console.log(rackElement);
-        let old_letters = rackElement.letters;
-        let new_letters = old_letters.slice();
-        console.log(new_letters);
-        for (let i = 0; i < new_letters.length; i++) {
-            if (new_letters[i] === letter) {
-                new_letters.splice(i, 1);
-                break;
-            }
-        }
-        console.log(new_letters);
-        let newState = {};
-        for (let key in this.state.racks) {
-            if (this.state.racks.hasOwnProperty(key)) {
-                if (key === rack) {
-                    newState[key] = { rack: <Rack letters={new_letters} id={key} />, letters: new_letters };
-                } else {
-                    newState[key] = this.state.racks[key];
+        this.setState((prevState, props) => {
+            let rackElement = prevState.racks[rack];
+            let old_letters = rackElement.letters;
+            let new_letters = old_letters.slice();
+            for (let i = 0; i < new_letters.length; i++) {
+                if (new_letters[i] === letter) {
+                    new_letters.splice(i, 1);
+                    break;
                 }
             }
-        }
-        console.log(newState);
-        this.setState(newState);
+            let newState = {};
+            for (let key in prevState.racks) {
+                if (prevState.racks.hasOwnProperty(key)) {
+                    if (key === rack) {
+                        newState[key] = { rack: <Rack letters={new_letters} id={key} />, letters: new_letters };
+                    } else {
+                        newState[key] = prevState.racks[key];
+                    }
+                }
+            }
+            return { racks: newState };
+        });
     }
 
     render() {
