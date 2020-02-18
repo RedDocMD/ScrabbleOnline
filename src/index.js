@@ -121,7 +121,7 @@ class Cell extends React.Component {
     render() {
         if (this.state.content) {
             return (
-                <Tile letter={this.state.content.letter} dataItem={this.state.content.letter} value={this.state.content.value} />
+                <Tile letter={this.state.content.letter} dataItem={this.state.content.letter} value={this.state.content.value} className="in-cell-tile" />
             );
         } else {
             return (
@@ -144,7 +144,7 @@ class Tile extends React.Component {
 
     render() {
         return (
-            <span className="tile" draggable onDragStart={this.dragStart}>
+            <span className={"tile " + this.props.className} draggable onDragStart={this.dragStart}>
                 <div className="tile-text">{this.props.letter}</div>
                 <div className="tile-value">{this.props.value}</div>
             </span>
@@ -157,7 +157,7 @@ class Rack extends React.Component {
         let tiles = [];
         this.props.letters.forEach(letter => {
             let letter_obj = letter_values[letter];
-            tiles.push(<Tile letter={letter_obj.letter} key={letter + " " + this.props.id} value={letter_obj.value} dataItem={letter} rack={this.props.id} />);
+            tiles.push(<Tile letter={letter_obj.letter} key={letter + " " + this.props.id} value={letter_obj.value} dataItem={letter} rack={this.props.id} className="normal-tile" />);
         });
         return (
             <div className="rack">
@@ -170,7 +170,7 @@ class Rack extends React.Component {
 class App extends React.Component {
     constructor(props) {
         super(props);
-        let letters = ["A", "B", "C", "D"];
+        let letters = ["A", "B", "C", "D", "E", "F"];
         let racks = {};
         racks["rack-1"] = { rack: <Rack letters={letters} id="rack-1" />, letters: letters };
         this.state = { racks: racks };
