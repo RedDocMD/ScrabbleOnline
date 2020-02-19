@@ -73,52 +73,6 @@ function get_cell_types(size) {
 }
 
 class Board extends React.Component {
-    constructor(props) {
-        super(props);
-        this.rows = parseInt(this.props.rows, 10);
-        this.columns = parseInt(this.props.columns, 10);
-        let cellContent = new Array(this.rows);
-        for (let i = 0; i < this.rows; i++) cellContent[i] = new Array(this.columns);
-        for (let i = 0; i < this.rows; i++) {
-            for (let j = 0; j < this.columns; j++) {
-                cellContent[i][j] = "";
-            }
-        }
-        this.state = { cellContent: cellContent };
-        this.tileAdded = this.tileAdded.bind(this);
-        this.tileRemoved = this.tileRemoved.bind(this);
-    }
-
-    tileAdded(row, col, content) {
-        this.setState((prevState, props) => {
-            let oldContent = prevState.cellContent;
-            let cellContent = new Array(this.rows);
-            for (let i = 0; i < this.rows; i++) cellContent[i] = new Array(this.columns);
-            for (let i = 0; i < this.rows; i++) {
-                for (let j = 0; j < this.columns; j++) {
-                    cellContent[i][j] = oldContent[i][j];
-                }
-            }
-            cellContent[row][col] = content;
-            return { cellContent: cellContent };
-        });
-    }
-
-    tileRemoved(row, col) {
-        this.setState((prevState, props) => {
-            let oldContent = prevState.cellContent;
-            let cellContent = new Array(this.rows);
-            for (let i = 0; i < this.rows; i++) cellContent[i] = new Array(this.columns);
-            for (let i = 0; i < this.rows; i++) {
-                for (let j = 0; j < this.columns; j++) {
-                    cellContent[i][j] = oldContent[i][j];
-                }
-            }
-            cellContent[row][col] = "";
-            return { cellContent: cellContent };
-        });
-
-    }
 
     render() {
         let rows = [];
@@ -126,7 +80,7 @@ class Board extends React.Component {
         for (let i = 0; i < this.props.rows; i++) {
             let row = [];
             for (let j = 0; j < this.props.columns; j++) {
-                row.push(<td key={i + " " + j}><Cell className={types[i][j]} elementAdded={this.props.elementAdded} row={i} column={j} content={this.state.cellContent[i][j]} tileAdded={this.tileAdded} tileRemoved={this.tileRemoved} /></td>);
+                row.push(<td key={i + " " + j}><Cell className={types[i][j]} removeTileFromRack={this.props.removeTileFromRack} row={i} column={j} content={this.props.cellContent[i][j]} addTileToCell={this.props.addTileToCell} removeTileFromCell={this.props.removeTileFromCell} /></td>);
             }
             rows.push(<tr key={i + ''}>{row}</tr>);
         }
@@ -157,18 +111,14 @@ class Cell extends React.Component {
     dropOn(ev) {
         let droppedLetter = ev.dataTransfer.getData("drag-item");
         let fromRack = ev.dataTransfer.getData("from-rack");
-        let droppedItem = letter_values[droppedLetter];
-        if (droppedItem) {
-            this.setState({ content: droppedItem });
-        }
         if (fromRack !== "not-from-rack") {
-            this.props.elementAdded(droppedLetter, fromRack);
+            this.props.removeTileFromRack(droppedLetter, fromRack);
         } else {
             let position = ev.dataTransfer.getData("position");
             let coords = position.split(" ");
-            this.props.tileRemoved(parseInt(coords[0], 10), parseInt(coords[1], 10));
+            this.props.removeTileFromCell(parseInt(coords[0], 10), parseInt(coords[1], 10));
         }
-        this.props.tileAdded(this.props.row, this.props.column, droppedLetter);
+        this.props.addTileToCell(this.props.row, this.props.column, droppedLetter);
     }
 
     render() {
@@ -209,6 +159,26 @@ class Tile extends React.Component {
 }
 
 class Rack extends React.Component {
+    constructor(props) {
+        super(props);
+        this.dragOver = this.dragOver.bind(this);
+        this.dropOn = this.dropOn.bind(this);
+    }
+
+
+    dragOver(ev) {
+        ev.preventDefault();
+    }
+
+    dropOn(ev) {
+        let droppedLetter = ev.dataTransfer.getData("drag-item");
+        let position = ev.dataTransfer.getData("position");
+        let coords = position.split(" ");
+        this.props.removeTileFromCell(parseInt(coords[0], 10), parseInt(coords[1], 10));
+        this.props.addTileToRack(droppedLetter, this.props.id);
+    }
+
+
     render() {
         let tiles = [];
         this.props.letters.forEach(letter => {
@@ -216,7 +186,7 @@ class Rack extends React.Component {
             tiles.push(<Tile letter={letter_obj.letter} key={letter + " " + this.props.id} value={letter_obj.value} dataItem={letter} rack={this.props.id} className="normal-tile" />);
         });
         return (
-            <div className="rack">
+            <div className="rack" onDragOver={this.dragOver} onDrop={this.dropOn}>
                 {tiles}
             </div>
         );
@@ -226,14 +196,29 @@ class Rack extends React.Component {
 class App extends React.Component {
     constructor(props) {
         super(props);
+        this.removeTileFromRack = this.removeTileFromRack.bind(this);
+        this.addTileToRack = this.addTileToRack.bind(this);
+        this.removeTileFromCell = this.removeTileFromCell.bind(this);
+        this.addTileToCell = this.addTileToCell.bind(this);
+
         let letters = ["A", "B", "C", "D", "E", "F"];
         let racks = {};
-        racks["rack-1"] = { rack: <Rack letters={letters} id="rack-1" />, letters: letters };
-        this.state = { racks: racks };
-        this.removeTileFunc = this.removeTileFunc.bind(this);
+        racks["rack-1"] = { rack: <Rack letters={letters} id="rack-1" addTileToRack={this.addTileToRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters };
+        
+        this.rows = 15;
+        this.columns = 15;
+        let cellContent = new Array(this.rows);
+        for (let i = 0; i < this.rows; i++) cellContent[i] = new Array(this.columns);
+        for (let i = 0; i < this.rows; i++) {
+            for (let j = 0; j < this.columns; j++) {
+                cellContent[i][j] = "";
+            }
+        }
+        
+        this.state = { racks: racks, cellContent: cellContent };
     }
 
-    removeTileFunc(letter, rack) {
+    removeTileFromRack(letter, rack) {
         this.setState((prevState, props) => {
             let rackElement = prevState.racks[rack];
             let old_letters = rackElement.letters;
@@ -248,7 +233,7 @@ class App extends React.Component {
             for (let key in prevState.racks) {
                 if (prevState.racks.hasOwnProperty(key)) {
                     if (key === rack) {
-                        newState[key] = { rack: <Rack letters={new_letters} id={key} />, letters: new_letters };
+                        newState[key] = { rack: <Rack letters={new_letters} id={key} addTileToRack={this.addTileToRack} removeTileFromCell={this.removeTileFromCell} />, letters: new_letters };
                     } else {
                         newState[key] = prevState.racks[key];
                     }
@@ -258,8 +243,59 @@ class App extends React.Component {
         });
     }
 
+    addTileToRack(letter, rack) {
+        this.setState((prevState, props) => {
+            let rackElement = prevState.racks[rack];
+            let old_letters = rackElement.letters;
+            let new_letters = old_letters.slice();
+            new_letters.push(letter);
+            let newState = {};
+            for (let key in prevState.racks) {
+                if (prevState.racks.hasOwnProperty(key)) {
+                    if (key === rack) {
+                        newState[key] = { rack: <Rack letters={new_letters} id={key} addTileToRack={this.addTileToRack} removeTileFromCell={this.removeTileFromCell} />, letters: new_letters };
+                    } else {
+                        newState[key] = prevState.racks[key];
+                    }
+                }
+            }
+            return { racks: newState };
+        });
+    }
+
+    addTileToCell(row, col, content) {
+        this.setState((prevState, props) => {
+            let oldContent = prevState.cellContent;
+            let cellContent = new Array(this.rows);
+            for (let i = 0; i < this.rows; i++) cellContent[i] = new Array(this.columns);
+            for (let i = 0; i < this.rows; i++) {
+                for (let j = 0; j < this.columns; j++) {
+                    cellContent[i][j] = oldContent[i][j];
+                }
+            }
+            cellContent[row][col] = content;
+            return { cellContent: cellContent };
+        });
+    }
+
+    removeTileFromCell(row, col) {
+        this.setState((prevState, props) => {
+            let oldContent = prevState.cellContent;
+            let cellContent = new Array(this.rows);
+            for (let i = 0; i < this.rows; i++) cellContent[i] = new Array(this.columns);
+            for (let i = 0; i < this.rows; i++) {
+                for (let j = 0; j < this.columns; j++) {
+                    cellContent[i][j] = oldContent[i][j];
+                }
+            }
+            cellContent[row][col] = "";
+            return { cellContent: cellContent };
+        });
+
+    }
+
     render() {
-        let board = <Board rows="15" columns="15" elementAdded={this.removeTileFunc} />;
+        let board = <Board rows="15" columns="15" removeTileFromRack={this.removeTileFromRack} addTileToCell={this.addTileToCell} removeTileFromCell={this.removeTileFromCell} cellContent={this.state.cellContent} />;
         return (
             <div>
                 {board}
