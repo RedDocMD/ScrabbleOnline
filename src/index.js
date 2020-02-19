@@ -139,6 +139,8 @@ class Tile extends React.Component {
     constructor(props) {
         super(props);
         this.dragStart = this.dragStart.bind(this);
+        this.mouseEnter = this.mouseEnter.bind(this);
+        this.state = { cursorType: "default" };
     }
 
     dragStart(ev) {
@@ -148,9 +150,13 @@ class Tile extends React.Component {
         ev.dataTransfer.setData("position", this.props.row + " " + this.props.column);
     }
 
+    mouseEnter() {
+        this.setState({ cursorType: "grab" });
+    }
+
     render() {
         return (
-            <span className={"tile " + this.props.className} draggable onDragStart={this.dragStart}>
+            <span className={"tile " + this.props.className + " " + this.state.cursorType} draggable onDragStart={this.dragStart} onMouseEnter={this.mouseEnter}>
                 <div className="tile-text">{this.props.letter}</div>
                 <div className="tile-value">{this.props.value}</div>
             </span>
@@ -204,7 +210,7 @@ class App extends React.Component {
         let letters = ["A", "B", "C", "D", "E", "F"];
         let racks = {};
         racks["rack-1"] = { rack: <Rack letters={letters} id="rack-1" addTileToRack={this.addTileToRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters };
-        
+
         this.rows = 15;
         this.columns = 15;
         let cellContent = new Array(this.rows);
@@ -214,7 +220,7 @@ class App extends React.Component {
                 cellContent[i][j] = "";
             }
         }
-        
+
         this.state = { racks: racks, cellContent: cellContent };
     }
 

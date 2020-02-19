@@ -1,3 +1,8 @@
+.grab {
+    cursor: grab;
+    cursor: -webkit-grab;
+}
+
 .cell {
     width: 35px;
     height: 35px;
