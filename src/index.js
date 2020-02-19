@@ -73,13 +73,60 @@ function get_cell_types(size) {
 }
 
 class Board extends React.Component {
+    constructor(props) {
+        super(props);
+        this.rows = parseInt(this.props.rows, 10);
+        this.columns = parseInt(this.props.columns, 10);
+        let cellContent = new Array(this.rows);
+        for (let i = 0; i < this.rows; i++) cellContent[i] = new Array(this.columns);
+        for (let i = 0; i < this.rows; i++) {
+            for (let j = 0; j < this.columns; j++) {
+                cellContent[i][j] = "";
+            }
+        }
+        this.state = { cellContent: cellContent };
+        this.tileAdded = this.tileAdded.bind(this);
+        this.tileRemoved = this.tileRemoved.bind(this);
+    }
+
+    tileAdded(row, col, content) {
+        this.setState((prevState, props) => {
+            let oldContent = prevState.cellContent;
+            let cellContent = new Array(this.rows);
+            for (let i = 0; i < this.rows; i++) cellContent[i] = new Array(this.columns);
+            for (let i = 0; i < this.rows; i++) {
+                for (let j = 0; j < this.columns; j++) {
+                    cellContent[i][j] = oldContent[i][j];
+                }
+            }
+            cellContent[row][col] = content;
+            return { cellContent: cellContent };
+        });
+    }
+
+    tileRemoved(row, col) {
+        this.setState((prevState, props) => {
+            let oldContent = prevState.cellContent;
+            let cellContent = new Array(this.rows);
+            for (let i = 0; i < this.rows; i++) cellContent[i] = new Array(this.columns);
+            for (let i = 0; i < this.rows; i++) {
+                for (let j = 0; j < this.columns; j++) {
+                    cellContent[i][j] = oldContent[i][j];
+                }
+            }
+            cellContent[row][col] = "";
+            return { cellContent: cellContent };
+        });
+
+    }
+
     render() {
         let rows = [];
         let types = get_cell_types(this.props.rows);
         for (let i = 0; i < this.props.rows; i++) {
             let row = [];
             for (let j = 0; j < this.props.columns; j++) {
-                row.push(<td key={i + " " + j}><Cell className={types[i][j]} elementAdded={this.props.elementAdded} /></td>);
+                row.push(<td key={i + " " + j}><Cell className={types[i][j]} elementAdded={this.props.elementAdded} row={i} column={j} content={this.state.cellContent[i][j]} tileAdded={this.tileAdded} tileRemoved={this.tileRemoved} /></td>);
             }
             rows.push(<tr key={i + ''}>{row}</tr>);
         }
@@ -101,7 +148,6 @@ class Cell extends React.Component {
         if (this.type === "star") this.type = "double-letter";
         this.dragOver = this.dragOver.bind(this);
         this.dropOn = this.dropOn.bind(this);
-        this.state = { content: null };
     }
 
     dragOver(ev) {
@@ -115,13 +161,21 @@ class Cell extends React.Component {
         if (droppedItem) {
             this.setState({ content: droppedItem });
         }
-        this.props.elementAdded(droppedLetter, fromRack);
+        if (fromRack !== "not-from-rack") {
+            this.props.elementAdded(droppedLetter, fromRack);
+        } else {
+            let position = ev.dataTransfer.getData("position");
+            let coords = position.split(" ");
+            this.props.tileRemoved(parseInt(coords[0], 10), parseInt(coords[1], 10));
+        }
+        this.props.tileAdded(this.props.row, this.props.column, droppedLetter);
     }
 
     render() {
-        if (this.state.content) {
+        if (this.props.content !== "") {
+            let content = letter_values[this.props.content];
             return (
-                <Tile letter={this.state.content.letter} dataItem={this.state.content.letter} value={this.state.content.value} className="in-cell-tile" />
+                <Tile letter={content.letter} dataItem={content.letter} value={content.value} className="in-cell-tile" row={this.props.row} column={this.props.column} />
             );
         } else {
             return (
@@ -139,7 +193,9 @@ class Tile extends React.Component {
 
     dragStart(ev) {
         ev.dataTransfer.setData("drag-item", this.props.dataItem);
-        ev.dataTransfer.setData("from-rack", this.props.rack);
+        let rackValue = this.props.rack === undefined ? "not-from-rack" : this.props.rack;
+        ev.dataTransfer.setData("from-rack", rackValue);
+        ev.dataTransfer.setData("position", this.props.row + " " + this.props.column);
     }
 
     render() {
