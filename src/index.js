@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-const letter_values = {
+const letterValues = {
     "A": { letter: "A", value: 1 },
     "B": { letter: "B", value: 3 },
     "C": { letter: "C", value: 3 },
@@ -31,7 +31,7 @@ const letter_values = {
     "Z": { letter: "Z", value: 10 }
 }
 
-function get_cell_types(size) {
+function getCellTypes(size) {
     let types = new Array(size);
     for (let i = 0; i < size; i++) types[i] = new Array(size);
 
@@ -76,7 +76,7 @@ class Board extends React.Component {
 
     render() {
         let rows = [];
-        let types = get_cell_types(this.props.rows);
+        let types = getCellTypes(this.props.rows);
         for (let i = 0; i < this.props.rows; i++) {
             let row = [];
             for (let j = 0; j < this.props.columns; j++) {
@@ -123,7 +123,7 @@ class Cell extends React.Component {
 
     render() {
         if (this.props.content !== "") {
-            let content = letter_values[this.props.content];
+            let content = letterValues[this.props.content];
             return (
                 <Tile letter={content.letter} dataItem={content.letter} value={content.value} className="in-cell-tile" row={this.props.row} column={this.props.column} />
             );
@@ -178,18 +178,25 @@ class Rack extends React.Component {
 
     dropOn(ev) {
         let droppedLetter = ev.dataTransfer.getData("drag-item");
-        let position = ev.dataTransfer.getData("position");
-        let coords = position.split(" ");
-        this.props.removeTileFromCell(parseInt(coords[0], 10), parseInt(coords[1], 10));
-        this.props.addTileToRack(droppedLetter, this.props.id);
+        let fromRack = ev.dataTransfer.getData("from-rack");
+        if (fromRack === "not-from-rack") {
+            let position = ev.dataTransfer.getData("position");
+            let coords = position.split(" ");
+            this.props.removeTileFromCell(parseInt(coords[0], 10), parseInt(coords[1], 10));
+            this.props.addTileToRack(droppedLetter, this.props.id);
+        } else if (fromRack !== this.props.id) {
+            this.props.addTileToRack(droppedLetter, this.props.id);
+            this.props.removeTileFromRack(droppedLetter, fromRack);
+        }
+        
     }
 
 
     render() {
         let tiles = [];
         this.props.letters.forEach(letter => {
-            let letter_obj = letter_values[letter];
-            tiles.push(<Tile letter={letter_obj.letter} key={letter + " " + this.props.id} value={letter_obj.value} dataItem={letter} rack={this.props.id} className="normal-tile" />);
+            let letterObj = letterValues[letter];
+            tiles.push(<Tile letter={letterObj.letter} key={letter + " " + this.props.id} value={letterObj.value} dataItem={letter} rack={this.props.id} className="normal-tile" />);
         });
         return (
             <div className="rack" onDragOver={this.dragOver} onDrop={this.dropOn}>
@@ -207,9 +214,11 @@ class App extends React.Component {
         this.removeTileFromCell = this.removeTileFromCell.bind(this);
         this.addTileToCell = this.addTileToCell.bind(this);
 
-        let letters = ["A", "B", "C", "D", "E", "F"];
+        let letters1 = ["A", "B", "C", "D", "E", "F", "K"];
+        let letters2 = ["I", "U", "C", "Q", "B", "Z", "J"];
         let racks = {};
-        racks["rack-1"] = { rack: <Rack letters={letters} id="rack-1" addTileToRack={this.addTileToRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters };
+        racks["rack-1"] = { rack: <Rack letters={letters1} id="rack-1" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters1 };
+        racks["rack-2"] = { rack: <Rack letters={letters2} id="rack-2" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters2 };
 
         this.rows = 15;
         this.columns = 15;
@@ -227,11 +236,11 @@ class App extends React.Component {
     removeTileFromRack(letter, rack) {
         this.setState((prevState, props) => {
             let rackElement = prevState.racks[rack];
-            let old_letters = rackElement.letters;
-            let new_letters = old_letters.slice();
-            for (let i = 0; i < new_letters.length; i++) {
-                if (new_letters[i] === letter) {
-                    new_letters.splice(i, 1);
+            let oldLetters = rackElement.letters;
+            let newLetters = oldLetters.slice();
+            for (let i = 0; i < newLetters.length; i++) {
+                if (newLetters[i] === letter) {
+                    newLetters.splice(i, 1);
                     break;
                 }
             }
@@ -239,7 +248,7 @@ class App extends React.Component {
             for (let key in prevState.racks) {
                 if (prevState.racks.hasOwnProperty(key)) {
                     if (key === rack) {
-                        newState[key] = { rack: <Rack letters={new_letters} id={key} addTileToRack={this.addTileToRack} removeTileFromCell={this.removeTileFromCell} />, letters: new_letters };
+                        newState[key] = { rack: <Rack letters={newLetters} id={key} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: newLetters };
                     } else {
                         newState[key] = prevState.racks[key];
                     }
@@ -252,14 +261,16 @@ class App extends React.Component {
     addTileToRack(letter, rack) {
         this.setState((prevState, props) => {
             let rackElement = prevState.racks[rack];
-            let old_letters = rackElement.letters;
-            let new_letters = old_letters.slice();
-            new_letters.push(letter);
+            let oldLetters = rackElement.letters;
+            let newLetters = oldLetters.slice();
+            if (newLetters.length < 7) {
+                newLetters.push(letter);
+            }
             let newState = {};
             for (let key in prevState.racks) {
                 if (prevState.racks.hasOwnProperty(key)) {
                     if (key === rack) {
-                        newState[key] = { rack: <Rack letters={new_letters} id={key} addTileToRack={this.addTileToRack} removeTileFromCell={this.removeTileFromCell} />, letters: new_letters };
+                        newState[key] = { rack: <Rack letters={newLetters} id={key} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: newLetters };
                     } else {
                         newState[key] = prevState.racks[key];
                     }
@@ -306,6 +317,7 @@ class App extends React.Component {
             <div>
                 {board}
                 {this.state.racks["rack-1"].rack}
+                {this.state.racks["rack-2"].rack}
             </div>
         );
     }
