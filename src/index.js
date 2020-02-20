@@ -73,6 +73,31 @@ function getCellTypes(size) {
     return types;
 }
 
+class BagOfTiles {
+    constructor() {
+        let tilesLeft = ["", ""];
+        for (let letterCode = 0; letterCode < 26; letterCode++) {
+            let letter = String.fromCharCode(65 + letterCode);
+            let nos = letterValues[letter].nos;
+            for (let i = 1; i <= nos; i++) tilesLeft.push(letter);
+        }
+        this.tileLeft = tilesLeft;
+        this.getTiles = this.getTiles.bind(this);
+    }
+
+    getTiles(n) {
+        let tiles = [];
+        let size = this.tileLeft.length;
+        for (let i = 0; i < n; i++) {
+            let idx = Math.floor(Math.random() * size);
+            --size;
+            tiles.push(this.tileLeft[idx]);
+            this.tileLeft.splice(idx, 1);
+        }
+        return tiles;
+    }
+}
+
 class Board extends React.Component {
 
     render() {
@@ -197,7 +222,7 @@ class Rack extends React.Component {
         let tiles = [];
         this.props.letters.forEach(letter => {
             let letterObj = letterValues[letter];
-            tiles.push(<Tile letter={letterObj.letter} key={letter + " " + this.props.id} value={letterObj.value} dataItem={letter} rack={this.props.id} className="normal-tile" />);
+            tiles.push(<Tile letter={letterObj.letter} key={letter + " " + this.props.id + " " + Math.random()} value={letterObj.value} dataItem={letter} rack={this.props.id} className="normal-tile" />);
         });
         return (
             <div className="rack" onDragOver={this.dragOver} onDrop={this.dropOn}>
@@ -215,8 +240,10 @@ class App extends React.Component {
         this.removeTileFromCell = this.removeTileFromCell.bind(this);
         this.addTileToCell = this.addTileToCell.bind(this);
 
-        let letters1 = ["A", "B", "C", "D", "E", "F", "K"];
-        let letters2 = ["I", "U", "C", "Q", "B", "Z", "J"];
+        this.bag = new BagOfTiles();
+
+        let letters1 = this.bag.getTiles(7);
+        let letters2 = this.bag.getTiles(7);
         let racks = {};
         racks["rack-1"] = { rack: <Rack letters={letters1} id="rack-1" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters1 };
         racks["rack-2"] = { rack: <Rack letters={letters2} id="rack-2" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters2 };
