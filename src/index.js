@@ -184,7 +184,7 @@ class Tile extends React.Component {
         return (
             <span className={"tile " + this.props.className + " " + this.state.cursorType} draggable onDragStart={this.dragStart} onMouseEnter={this.mouseEnter}>
                 <div className="tile-text">{this.props.letter}</div>
-                <div className="tile-value">{this.props.value}</div>
+                <div className="tile-value">{this.props.value === 0 ? "" : this.props.value}</div>
             </span>
         );
     }
@@ -241,9 +241,10 @@ class App extends React.Component {
         this.addTileToCell = this.addTileToCell.bind(this);
 
         this.bag = new BagOfTiles();
+        this.maxNoOfTiles = 7;
 
-        let letters1 = this.bag.getTiles(7);
-        let letters2 = this.bag.getTiles(7);
+        let letters1 = this.bag.getTiles(this.maxNoOfTiles);
+        let letters2 = this.bag.getTiles(this.maxNoOfTiles);
         let racks = {};
         racks["rack-1"] = { rack: <Rack letters={letters1} id="rack-1" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters1 };
         racks["rack-2"] = { rack: <Rack letters={letters2} id="rack-2" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters2 };
@@ -291,7 +292,7 @@ class App extends React.Component {
             let rackElement = prevState.racks[rack];
             let oldLetters = rackElement.letters;
             let newLetters = oldLetters.slice();
-            if (newLetters.length < 7) {
+            if (newLetters.length < this.maxNoOfTiles) {
                 newLetters.push(letter);
             }
             let newState = {};
@@ -340,7 +341,7 @@ class App extends React.Component {
     }
 
     render() {
-        let board = <Board rows="15" columns="15" removeTileFromRack={this.removeTileFromRack} addTileToCell={this.addTileToCell} removeTileFromCell={this.removeTileFromCell} cellContent={this.state.cellContent} />;
+        let board = <Board rows={this.rows} columns={this.columns} removeTileFromRack={this.removeTileFromRack} addTileToCell={this.addTileToCell} removeTileFromCell={this.removeTileFromCell} cellContent={this.state.cellContent} />;
         return (
             <div>
                 {board}
