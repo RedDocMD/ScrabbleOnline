@@ -3,32 +3,33 @@ import ReactDOM from 'react-dom';
 import './index.css';
 
 const letterValues = {
-    "A": { letter: "A", value: 1 },
-    "B": { letter: "B", value: 3 },
-    "C": { letter: "C", value: 3 },
-    "D": { letter: "D", value: 2 },
-    "E": { letter: "E", value: 1 },
-    "F": { letter: "F", value: 4 },
-    "G": { letter: "G", value: 2 },
-    "H": { letter: "H", value: 4 },
-    "I": { letter: "I", value: 1 },
-    "J": { letter: "J", value: 8 },
-    "K": { letter: "K", value: 5 },
-    "L": { letter: "L", value: 1 },
-    "M": { letter: "M", value: 3 },
-    "N": { letter: "N", value: 1 },
-    "O": { letter: "O", value: 1 },
-    "P": { letter: "P", value: 3 },
-    "Q": { letter: "Q", value: 10 },
-    "R": { letter: "R", value: 1 },
-    "S": { letter: "S", value: 1 },
-    "T": { letter: "T", value: 1 },
-    "U": { letter: "U", value: 1 },
-    "V": { letter: "V", value: 4 },
-    "W": { letter: "W", value: 4 },
-    "X": { letter: "X", value: 8 },
-    "Y": { letter: "Y", value: 4 },
-    "Z": { letter: "Z", value: 10 }
+    "": { letter: "", value: 0, nos: 2 },
+    "A": { letter: "A", value: 1, nos: 9 },
+    "B": { letter: "B", value: 3, nos: 2 },
+    "C": { letter: "C", value: 3, nos: 2 },
+    "D": { letter: "D", value: 2, nos: 4 },
+    "E": { letter: "E", value: 1, nos: 12 },
+    "F": { letter: "F", value: 4, nos: 2 },
+    "G": { letter: "G", value: 2, nos: 3 },
+    "H": { letter: "H", value: 4, nos: 2 },
+    "I": { letter: "I", value: 1, nos: 9 },
+    "J": { letter: "J", value: 8, nos: 1 },
+    "K": { letter: "K", value: 5, nos: 1 },
+    "L": { letter: "L", value: 1, nos: 4 },
+    "M": { letter: "M", value: 3, nos: 2 },
+    "N": { letter: "N", value: 1, nos: 6 },
+    "O": { letter: "O", value: 1, nos: 8 },
+    "P": { letter: "P", value: 3, nos: 2 },
+    "Q": { letter: "Q", value: 10, nos: 1 },
+    "R": { letter: "R", value: 1, nos: 6 },
+    "S": { letter: "S", value: 1, nos: 4 },
+    "T": { letter: "T", value: 1, nos: 6 },
+    "U": { letter: "U", value: 1, nos: 4 },
+    "V": { letter: "V", value: 4, nos: 2 },
+    "W": { letter: "W", value: 4, nos: 2 },
+    "X": { letter: "X", value: 8, nos: 1 },
+    "Y": { letter: "Y", value: 4, nos: 2 },
+    "Z": { letter: "Z", value: 10, nos: 1 }
 }
 
 function getCellTypes(size) {
@@ -188,7 +189,7 @@ class Rack extends React.Component {
             this.props.addTileToRack(droppedLetter, this.props.id);
             this.props.removeTileFromRack(droppedLetter, fromRack);
         }
-        
+
     }
 
 
