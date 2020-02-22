@@ -233,18 +233,27 @@ class Rack extends React.Component {
 }
 
 class Player extends React.Component {
+    constructor(props) {
+        super(props);
+        this.playerName = "Player ";
+        this.playerName = this.playerName + this.props.id.substring(this.props.id.length - 1, this.props.id.length);
+    }
+
     render() {
         return (
-            <span>
-                <div>
-                    <Rack letters={this.props.letters} id="rack-1" addTileToRack={this.props.addTileToRack} removeTileFromRack={this.props.removeTileFromRack} removeTileFromCell={this.props.removeTileFromCell} />
+            <div className="flex-auto flex flex-col">
+                <div className="text-4xl font-medium text-center">
+                    {this.playerName}
                 </div>
-                <div>
-                    <button>Make move</button>
-                    <button>Change tiles</button>
-                    <button>Pass turn</button>
+                <div className="flex justify-around">
+                    {this.props.children}
                 </div>
-            </span>
+                <div className="flex justify-around">
+                    <button className="player-btn">Make move</button>
+                    <button className="player-btn">Change tiles</button>
+                    <button className="player-btn">Pass turn</button>
+                </div>
+            </div>
         );
     }
 }
@@ -262,9 +271,25 @@ class App extends React.Component {
 
         let letters1 = this.bag.getTiles(this.maxNoOfTiles);
         let letters2 = this.bag.getTiles(this.maxNoOfTiles);
+        let letters3 = this.bag.getTiles(this.maxNoOfTiles);
+        let letters4 = this.bag.getTiles(this.maxNoOfTiles);
         let racks = {};
         racks["rack-1"] = { rack: <Rack letters={letters1} id="rack-1" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters1 };
         racks["rack-2"] = { rack: <Rack letters={letters2} id="rack-2" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters2 };
+        racks["rack-3"] = { rack: <Rack letters={letters3} id="rack-3" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters3 };
+        racks["rack-4"] = { rack: <Rack letters={letters4} id="rack-4" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters4 };
+
+        let players = {};
+        for (let rackID in racks) {
+            let playerID = rackID.replace("rack", "player");
+            players[playerID] = {
+                player:
+                    <Player id={playerID}>
+                        {racks[rackID].rack}
+                    </Player>,
+                rack: rackID
+            }
+        }
 
         this.rows = 15;
         this.columns = 15;
@@ -276,7 +301,7 @@ class App extends React.Component {
             }
         }
 
-        this.state = { racks: racks, cellContent: cellContent };
+        this.state = { racks: racks, cellContent: cellContent, players: players };
     }
 
     removeTileFromRack(letter, rack) {
@@ -300,7 +325,18 @@ class App extends React.Component {
                     }
                 }
             }
-            return { racks: newState };
+            let players = {};
+            for (let rackID in newState) {
+                let playerID = rackID.replace("rack", "player");
+                players[playerID] = {
+                    player:
+                        <Player>
+                            {newState[rackID].rack}
+                        </Player>,
+                    rack: rackID
+                }
+            }
+            return { racks: newState, players: players };
         });
     }
 
@@ -322,7 +358,18 @@ class App extends React.Component {
                     }
                 }
             }
-            return { racks: newState };
+            let players = {};
+            for (let rackID in newState) {
+                let playerID = rackID.replace("rack", "player");
+                players[playerID] = {
+                    player:
+                        <Player>
+                            {newState[rackID].rack}
+                        </Player>,
+                    rack: rackID
+                }
+            }
+            return { racks: newState, players: players };
         });
     }
 
@@ -360,10 +407,16 @@ class App extends React.Component {
     render() {
         let board = <Board rows={this.rows} columns={this.columns} removeTileFromRack={this.removeTileFromRack} addTileToCell={this.addTileToCell} removeTileFromCell={this.removeTileFromCell} cellContent={this.state.cellContent} />;
         return (
-            <div>
+            <div className="flex flex-row">
+                <div className="flex flex-col flex-1">
+                    {this.state.players["player-1"].player}
+                    {this.state.players["player-2"].player}
+                </div>
                 {board}
-                {this.state.racks["rack-1"].rack}
-                {this.state.racks["rack-2"].rack}
+                <div className="flex flex-col flex-1">
+                    {this.state.players["player-3"].player}
+                    {this.state.players["player-4"].player}
+                </div>
             </div>
         );
     }

@@ -102,3 +102,7 @@
     height: 841px;
     width: 841px;
 }
+
+.player-btn {
+    @apply bg-blue-300 px-4 py-2 rounded font-light;    
+}
