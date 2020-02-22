@@ -242,7 +242,8 @@ class Player extends React.Component {
     render() {
         return (
             <div className="flex-auto flex flex-col">
-                <div className="text-4xl font-medium text-center">
+                <div className="text-white name">Hell</div>
+                <div className="text-4xl font-medium text-center  underline">
                     {this.playerName}
                 </div>
                 <div className="flex justify-around">
@@ -253,6 +254,7 @@ class Player extends React.Component {
                     <button className="player-btn">Change tiles</button>
                     <button className="player-btn">Pass turn</button>
                 </div>
+                <div className="text-white name">Hell</div>
             </div>
         );
     }
