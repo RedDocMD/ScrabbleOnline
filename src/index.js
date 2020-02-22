@@ -232,6 +232,23 @@ class Rack extends React.Component {
     }
 }
 
+class Player extends React.Component {
+    render() {
+        return (
+            <span>
+                <div>
+                    <Rack letters={this.props.letters} id="rack-1" addTileToRack={this.props.addTileToRack} removeTileFromRack={this.props.removeTileFromRack} removeTileFromCell={this.props.removeTileFromCell} />
+                </div>
+                <div>
+                    <button>Make move</button>
+                    <button>Change tiles</button>
+                    <button>Pass turn</button>
+                </div>
+            </span>
+        );
+    }
+}
+
 class App extends React.Component {
     constructor(props) {
         super(props);
