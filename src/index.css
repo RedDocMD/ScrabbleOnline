@@ -8,17 +8,17 @@
 }
 
 .cell {
-    width: 35px;
-    height: 35px;
-    padding: 6.033px;
+    width: 48px;
+    height: 48px;
+    /* padding: 6.033px; */
     background-color: #1ca289;
     margin: auto;
 }
 
 .tile {
-    width: 27px;
-    height: 27px;
-    padding: 6.033px;
+    width: 47px;
+    height: 47px;
+    /* padding: 6.033px; */
     background-color: #fceabe;
     display: inline-block;
     border: 4px solid #f5dfa6;
@@ -33,8 +33,8 @@
 .in-cell-tile {
     margin-right: 2px;
     margin-left: 2px;
-    margin-bottom: -5px;
-    margin-top: -1px;;
+    margin-bottom: -6px;
+    margin-top: -1px;
 }
 
 .tile-text {
@@ -42,7 +42,7 @@
     top: 2px;
     left: 7px;
     font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     color: #0f6453;
 }
@@ -66,8 +66,8 @@
     padding-right: 5px;
     background-color: #1ca289;
     box-shadow: -5px -5px 1px #206659 inset;
-    min-width: 360px;
-    min-height: 60px;
+    min-width: 394px;
+    min-height: 70px;
 }
 
 .double-letter {

@@ -38,7 +38,7 @@ function getCellTypes(size) {
 
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
-            types[i][i] = "normal";
+            types[i][j] = "normal";
             if ((i === 0 || i === 14) && (j === 3 || j === 11)) types[i][j] = "double-letter";
             if ((j === 0 || j === 14) && (i === 3 || i === 11)) types[i][j] = "double-letter";
             if ((i === 1 || i === 13) && (j === 5 || j === 9)) types[i][j] = "triple-letter";
