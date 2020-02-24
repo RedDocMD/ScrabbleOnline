@@ -267,31 +267,32 @@ class App extends React.Component {
         this.addTileToRack = this.addTileToRack.bind(this);
         this.removeTileFromCell = this.removeTileFromCell.bind(this);
         this.addTileToCell = this.addTileToCell.bind(this);
+        this.initializeGame = this.initializeGame.bind(this);
 
         this.bag = new BagOfTiles();
         this.maxNoOfTiles = 7;
 
-        let letters1 = this.bag.getTiles(this.maxNoOfTiles);
-        let letters2 = this.bag.getTiles(this.maxNoOfTiles);
-        let letters3 = this.bag.getTiles(this.maxNoOfTiles);
-        let letters4 = this.bag.getTiles(this.maxNoOfTiles);
+        // let letters1 = this.bag.getTiles(this.maxNoOfTiles);
+        // let letters2 = this.bag.getTiles(this.maxNoOfTiles);
+        // let letters3 = this.bag.getTiles(this.maxNoOfTiles);
+        // let letters4 = this.bag.getTiles(this.maxNoOfTiles);
         let racks = {};
-        racks["rack-1"] = { rack: <Rack letters={letters1} id="rack-1" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters1 };
-        racks["rack-2"] = { rack: <Rack letters={letters2} id="rack-2" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters2 };
-        racks["rack-3"] = { rack: <Rack letters={letters3} id="rack-3" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters3 };
-        racks["rack-4"] = { rack: <Rack letters={letters4} id="rack-4" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters4 };
+        // racks["rack-1"] = { rack: <Rack letters={letters1} id="rack-1" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters1 };
+        // racks["rack-2"] = { rack: <Rack letters={letters2} id="rack-2" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters2 };
+        // racks["rack-3"] = { rack: <Rack letters={letters3} id="rack-3" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters3 };
+        // racks["rack-4"] = { rack: <Rack letters={letters4} id="rack-4" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters4 };
 
         let players = {};
-        for (let rackID in racks) {
-            let playerID = rackID.replace("rack", "player");
-            players[playerID] = {
-                player:
-                    <Player id={playerID}>
-                        {racks[rackID].rack}
-                    </Player>,
-                rack: rackID
-            }
-        }
+        // for (let rackID in racks) {
+        //     let playerID = rackID.replace("rack", "player");
+        //     players[playerID] = {
+        //         player:
+        //             <Player id={playerID}>
+        //                 {racks[rackID].rack}
+        //             </Player>,
+        //         rack: rackID
+        //     }
+        // }
 
         this.rows = 15;
         this.columns = 15;
@@ -303,7 +304,9 @@ class App extends React.Component {
             }
         }
 
-        this.state = { racks: racks, cellContent: cellContent, players: players };
+        let gameState = { state: "to-start", noOfPlayers: 0, maxNoOfPlayers: 4 };
+
+        this.state = { racks: racks, cellContent: cellContent, players: players, gameState: gameState };
     }
 
     removeTileFromRack(letter, rack) {
@@ -406,19 +409,34 @@ class App extends React.Component {
 
     }
 
+    initializeGame() {
+        console.log("hello");
+    }
+
     render() {
         let board = <Board rows={this.rows} columns={this.columns} removeTileFromRack={this.removeTileFromRack} addTileToCell={this.addTileToCell} removeTileFromCell={this.removeTileFromCell} cellContent={this.state.cellContent} />;
+        let toRender = <div></div>
+        if (this.state.gameState.state === "to-start") {
+            toRender = (
+                <div className="flex flex-row">
+                    <div className="flex flex-col flex-1">
+                    </div>
+                    {board}
+                    <div className="flex flex-col flex-1">
+                    </div>
+                </div>
+            );
+        }
         return (
-            <div className="flex flex-row">
-                <div className="flex flex-col flex-1">
-                    {this.state.players["player-1"].player}
-                    {this.state.players["player-2"].player}
-                </div>
-                {board}
-                <div className="flex flex-col flex-1">
-                    {this.state.players["player-3"].player}
-                    {this.state.players["player-4"].player}
-                </div>
+            <div>
+                <header className="bg-black text-white text-center align-middle text-4xl mb-6">
+                    Scrabble Game
+                    <span className="float-right flex flex-row-reverse">
+                        <span className="text-2xl text-red-400 hover:text-red-600 align-text-bottom mr-4 mt-2 mb-2 ml-10 cursor-pointer" onClick={this.initializeGame}>Start</span>
+                        <span className="text-xl text-gray-400 hover:text-gray-200 align-text-bottom mr-4 mt-2 mb-2 cursor-pointer">Point</span>
+                    </span>
+                </header>
+                {toRender}
             </div>
         );
     }
