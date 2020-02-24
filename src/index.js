@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Swal from 'sweetalert2';
 import './index.css';
 
 const letterValues = {
@@ -235,8 +236,7 @@ class Rack extends React.Component {
 class Player extends React.Component {
     constructor(props) {
         super(props);
-        this.playerName = "Player ";
-        this.playerName = this.playerName + this.props.id.substring(this.props.id.length - 1, this.props.id.length);
+        this.playerName = this.props.name;
     }
 
     render() {
@@ -272,27 +272,8 @@ class App extends React.Component {
         this.bag = new BagOfTiles();
         this.maxNoOfTiles = 7;
 
-        // let letters1 = this.bag.getTiles(this.maxNoOfTiles);
-        // let letters2 = this.bag.getTiles(this.maxNoOfTiles);
-        // let letters3 = this.bag.getTiles(this.maxNoOfTiles);
-        // let letters4 = this.bag.getTiles(this.maxNoOfTiles);
         let racks = {};
-        // racks["rack-1"] = { rack: <Rack letters={letters1} id="rack-1" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters1 };
-        // racks["rack-2"] = { rack: <Rack letters={letters2} id="rack-2" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters2 };
-        // racks["rack-3"] = { rack: <Rack letters={letters3} id="rack-3" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters3 };
-        // racks["rack-4"] = { rack: <Rack letters={letters4} id="rack-4" addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters4 };
-
         let players = {};
-        // for (let rackID in racks) {
-        //     let playerID = rackID.replace("rack", "player");
-        //     players[playerID] = {
-        //         player:
-        //             <Player id={playerID}>
-        //                 {racks[rackID].rack}
-        //             </Player>,
-        //         rack: rackID
-        //     }
-        // }
 
         this.rows = 15;
         this.columns = 15;
@@ -304,7 +285,7 @@ class App extends React.Component {
             }
         }
 
-        let gameState = { state: "to-start", noOfPlayers: 0, maxNoOfPlayers: 4 };
+        let gameState = { state: "to-start", noOfPlayers: 0, maxNoOfPlayers: 4, minNoOfPlayers: 2 };
 
         this.state = { racks: racks, cellContent: cellContent, players: players, gameState: gameState };
     }
@@ -410,7 +391,126 @@ class App extends React.Component {
     }
 
     initializeGame() {
-        console.log("hello");
+        this.setState(async (prevState, props) => {
+            if (prevState.gameState.state === "to-start") {
+                let { value: noOfPlayers } = await Swal.fire({
+                    title: "Enter the number of players",
+                    input: "text",
+                    showCancelButton: true,
+                    inputValidator: (value) => {
+                        if (isNaN(value.trim()) || value.trim() === "") {
+                            return "You must enter a number";
+                        }
+                        let num = parseInt(value, 10);
+                        if (num < this.state.gameState.minNoOfPlayers || num > this.state.gameState.maxNoOfPlayers) {
+                            return "Number of players must between 2 to 4";
+                        }
+                    }
+                });
+                noOfPlayers = parseInt(noOfPlayers, 10);
+                let inputHtml = "";
+                for (let i = 1; i <= noOfPlayers; i++) {
+                    inputHtml += 'Player ' + i + ': <input id="swal-input' + i + '" class="swal2-input" />\n';
+                }
+                let { value: playerNames } = await Swal.fire({
+                    title: "Enter the names of the players",
+                    html: inputHtml,
+                    focusConfirm: false,
+                    allowOutsideClick: false,
+                    preConfirm: () => {
+                        let retArr = [];
+                        for (let i = 1; i <= noOfPlayers; i++) {
+                            retArr.push(document.getElementById("swal-input" + i).value);
+                        }
+                        return retArr;
+                    }
+                });
+                let gameState = { state: "started", noOfPlayers: noOfPlayers, maxNoOfPlayers: 4, minNoOfPlayers: 2 };
+                let racks = {};
+                for (let i = 1; i <= noOfPlayers; i++) {
+                    let letters = this.bag.getTiles(this.maxNoOfTiles);
+                    racks["rack-" + i] = { rack: <Rack letters={letters} id={"rack-" + i} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters };
+                }
+                let players = {};
+                for (let i = 1; i <= noOfPlayers; i++) {
+                    let playerID = "player-" + i;
+                    let rackID = "rack-" + i;
+                    players[playerID] = {
+                        player:
+                            <Player id={playerID} name={playerNames[i - 1]}>
+                                {racks[rackID].rack}
+                            </Player>,
+                        rack: rackID
+                    }
+                }
+                return { racks: racks, players: players, gameState: gameState };
+            } else if (prevState.gameState.state === "started") {
+                return prevState;
+            } else if (prevState.gameState.state === "ended") {
+                Swal.fire({
+                    title: 'Do you want to start a new game?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#20c94d',
+                    cancelButtonColor: '#cc3018',
+                    confirmButtonText: 'Yes, start a new game!'
+                }).then(async (result) => {
+                    if (result.value) {
+                        let { value: noOfPlayers } = await Swal.fire({
+                            title: "Enter the number of players",
+                            input: "text",
+                            showCancelButton: true,
+                            inputValidator: (value) => {
+                                if (isNaN(value.trim()) || value.trim() === "") {
+                                    return "You must enter a number";
+                                }
+                                let num = parseInt(value, 10);
+                                if (num < this.state.gameState.minNoOfPlayers || num > this.state.gameState.maxNoOfPlayers) {
+                                    return "Number of players must between 2 to 4";
+                                }
+                            }
+                        });
+                        noOfPlayers = parseInt(noOfPlayers, 10);
+                        let inputHtml = "";
+                        for (let i = 1; i <= noOfPlayers; i++) {
+                            inputHtml += 'Player ' + i + ': <input id="swal-input' + i + '" class="swal2-input" />\n';
+                        }
+                        let { value: playerNames } = await Swal.fire({
+                            title: "Enter the names of the players",
+                            html: inputHtml,
+                            focusConfirm: false,
+                            allowOutsideClick: false,
+                            preConfirm: () => {
+                                let retArr = [];
+                                for (let i = 1; i <= noOfPlayers; i++) {
+                                    retArr.push(document.getElementById("swal-input" + i).value);
+                                }
+                                return retArr;
+                            }
+                        });
+                        let gameState = { state: "started", noOfPlayers: noOfPlayers, maxNoOfPlayers: 4, minNoOfPlayers: 2 };
+                        let racks = {};
+                        for (let i = 1; i <= noOfPlayers; i++) {
+                            let letters = this.bag.getTiles(this.maxNoOfTiles);
+                            racks["rack-" + i] = { rack: <Rack letters={letters} id={"rack-" + i} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters };
+                        }
+                        let players = {};
+                        for (let i = 1; i <= noOfPlayers; i++) {
+                            let playerID = "player-" + i;
+                            let rackID = "rack-" + i;
+                            players[playerID] = {
+                                player:
+                                    <Player id={playerID} name={playerNames[i - 1]}>
+                                        {racks[rackID].rack}
+                                    </Player>,
+                                rack: rackID
+                            }
+                        }
+                        return { racks: racks, players: players, gameState: gameState };
+                    }
+                });
+            }
+        });
     }
 
     render() {
