@@ -5,8 +5,9 @@ import BagOfTiles from './tilegen';
 import Rack from './rack';
 import Player from './player';
 import StartForm from './start-form';
+import './index.css';
 
-import './index.css'; class App extends React.Component {
+class App extends React.Component {
     constructor(props) {
         super(props);
         this.removeTileFromRack = this.removeTileFromRack.bind(this);
@@ -270,9 +271,10 @@ import './index.css'; class App extends React.Component {
         }
         return (
             <div>
-                <header className="bg-black text-white text-center align-middle text-4xl mb-6">
-                    Scrabble Game
-                    <span className="float-right flex flex-row-reverse">
+                <header className="bg-black text-white text-center align-middle text-4xl mb-6 flex">
+                    <span className="flex-1"></span>
+                    <span className="flex-1">Scrabble Game</span>
+                    <span className="flex flex-row-reverse flex-1">
                         <span className="text-2xl text-red-400 hover:text-red-600 align-text-bottom mr-4 mt-2 mb-2 ml-10 cursor-pointer" onClick={this.initializeGame}>Start</span>
                         <span className="text-xl text-gray-400 hover:text-gray-200 align-text-bottom mr-4 mt-2 mb-2 cursor-pointer">Point</span>
                     </span>

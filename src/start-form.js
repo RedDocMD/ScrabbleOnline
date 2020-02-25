@@ -26,7 +26,7 @@ class StartForm extends React.Component {
                 for (let i = 0; i < noOfPlayers; i++) {
                     playerNames.push("");
                 }
-                this.setState({ position: 2, playerNames: playerNames });
+                this.setState({ position: 2, playerNames: playerNames, warning: "" });
             }
         }
     }
