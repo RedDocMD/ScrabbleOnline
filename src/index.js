@@ -15,6 +15,7 @@ import './index.css'; class App extends React.Component {
         this.addTileToCell = this.addTileToCell.bind(this);
         this.initializeGame = this.initializeGame.bind(this);
         this.setInitialData = this.setInitialData.bind(this);
+        this.passMove = this.passMove.bind(this);
 
         this.bag = new BagOfTiles();
         this.maxNoOfTiles = 7;
@@ -34,7 +35,7 @@ import './index.css'; class App extends React.Component {
 
         let gameState = { state: "to-start", noOfPlayers: 0, maxNoOfPlayers: 4, minNoOfPlayers: 2 };
 
-        this.state = { racks: racks, cellContent: cellContent, players: players, gameState: gameState };
+        this.state = { racks: racks, cellContent: cellContent, players: players, gameState: gameState, activePlayer: undefined };
     }
 
     removeTileFromRack(letter, rack) {
@@ -63,7 +64,7 @@ import './index.css'; class App extends React.Component {
                 let playerID = rackID.replace("rack", "player");
                 players[playerID] = {
                     player:
-                        <Player>
+                        <Player id={playerID} active={this.state.activePlayer} passMove={this.passMove}>
                             {newState[rackID].rack}
                         </Player>,
                     rack: rackID
@@ -96,7 +97,7 @@ import './index.css'; class App extends React.Component {
                 let playerID = rackID.replace("rack", "player");
                 players[playerID] = {
                     player:
-                        <Player>
+                        <Player id={playerID} active={this.state.activePlayer} passMove={this.passMove}>
                             {newState[rackID].rack}
                         </Player>,
                     rack: rackID
@@ -161,19 +162,41 @@ import './index.css'; class App extends React.Component {
                 racks["rack-" + i] = { rack: <Rack letters={letters} id={"rack-" + i} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters };
             }
             let players = {};
+            let activePlayer = 1;
             for (let i = 1; i <= noOfPlayers; i++) {
                 let playerID = "player-" + i;
                 let rackID = "rack-" + i;
                 players[playerID] = {
                     player:
-                        <Player id={playerID} name={names[i - 1]}>
+                        <Player id={playerID} name={names[i - 1]} active={activePlayer} passMove={this.passMove}>
                             {racks[rackID].rack}
                         </Player>,
                     rack: rackID
-                }
+                };
             }
-            this.setState({ racks: racks, players: players, gameState: gameState });
+            this.setState({ racks: racks, players: players, gameState: gameState, activePlayer: activePlayer });
         }
+    }
+
+    passMove() {
+        this.setState((state, props) => {
+            let activePlayer = state.activePlayer;
+            activePlayer = activePlayer + 1;
+            activePlayer = activePlayer > state.gameState.noOfPlayers ? 1 : activePlayer;
+            let players = {};
+            for (let i = 1; i <= state.gameState.noOfPlayers; i++) {
+                let playerID = "player-" + i;
+                let rackID = "rack-" + i;
+                players[playerID] = {
+                    player:
+                        <Player id={playerID} active={activePlayer} passMove={this.passMove}>
+                            {state.racks[rackID].rack}
+                        </Player>,
+                    rack: rackID
+                };
+            }
+            return { activePlayer: activePlayer, players: players };
+        });
     }
 
     render() {
