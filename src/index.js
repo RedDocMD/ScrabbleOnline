@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Swal from 'sweetalert2';
 import './index.css';
 
 const letterValues = {
@@ -260,6 +259,111 @@ class Player extends React.Component {
     }
 }
 
+class StartForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            position: 1,
+            noOfPlayers: "",
+            playerNames: [],
+            warning: ""
+        };
+        this.incrementPosition = this.incrementPosition.bind(this);
+        this.submit = this.submit.bind(this);
+    }
+
+    incrementPosition(ev) {
+        ev.preventDefault();
+        if (isNaN(this.state.noOfPlayers) || this.state.noOfPlayers === "") {
+            this.setState({ warning: "You must enter a number!" });
+        } else {
+            let noOfPlayers = parseInt(this.state.noOfPlayers, 10);
+            if (noOfPlayers < this.props.minPlayers || noOfPlayers > this.props.maxPlayers) {
+                this.setState({ warning: `Number of players must be between ${this.props.minPlayers} and ${this.props.maxPlayers}!` });
+            } else {
+                let playerNames = [];
+                for (let i = 0; i < noOfPlayers; i++) {
+                    playerNames.push("");
+                }
+                this.setState({ position: 2, playerNames: playerNames });
+            }
+        }
+    }
+
+    submit(ev) {
+        ev.preventDefault();
+        let flag = false;
+        for (let i = 0; i < this.state.noOfPlayers; i++) {
+            if (this.state.playerNames[i] === "") {
+                flag = true;
+                break;
+            }
+        }
+        if (flag) {
+            this.setState({ warning: "Player name cannot be empty" });
+        } else {
+            this.props.finalSubmit(this.state.playerNames);
+        }
+    }
+
+    render() {
+        if (this.state.position === 1) {
+            return (
+                <form onSubmit={this.incrementPosition}>
+                    <div className="text-center text-2xl font-semibold">Number of Players</div>
+                    <input type="text" className="border-gray-400 border-2 rounded mt-3 mb-5" onChange={(ev) => {
+                        this.setState({ noOfPlayers: ev.target.value });
+                    }} />
+                    <br />
+                    <div className="flex justify-around">
+                        <input type="submit" value="Continue" className="bg-green-400 px-4 py-2 rounded font-light" />
+                        <button className="bg-red-400 px-4 py-2 rounded font-light" onClick={
+                            (ev) => {
+                                this.props.finalSubmit(null);
+                            }
+                        }>Cancel</button>
+                    </div>
+                    <div className="mt-4 text-center text-red-600">
+                        {this.state.warning}
+                    </div>
+                </form>
+            )
+        } else if (this.state.position === 2) {
+            let inputFields = [];
+            for (let i = 0; i < this.state.noOfPlayers; i++) {
+                let inputField = (
+                    <div key={i + ""}>
+                        <span className="text-center text-xl font-semibold pr-3">{"Player " + (i + 1)}</span>
+                        <input type="text" className="border-gray-400 border-2 rounded mt-3 mb-5" onChange={(ev) => {
+                            let playerNames = this.state.playerNames;
+                            playerNames[i] = ev.target.value;
+                            this.setState({ playerNames: playerNames });
+                        }} />
+                    </div>
+                );
+                inputFields.push(inputField);
+            }
+            return (
+                <form onSubmit={this.submit}>
+                    {inputFields}
+                    < br />
+                    <div className="flex justify-around">
+                        <input type="submit" value="Continue" className="bg-green-400 px-4 py-2 rounded font-light" />
+                        <button className="bg-red-400 px-4 py-2 rounded font-light" onClick={
+                            (ev) => {
+                                this.props.finalSubmit(null);
+                            }
+                        }>Cancel</button>
+                    </div>
+                    <div className="mt-4 text-center text-red-600">
+                        {this.state.warning}
+                    </div>
+                </form>
+            );
+        }
+    }
+}
+
 class App extends React.Component {
     constructor(props) {
         super(props);
@@ -268,6 +372,7 @@ class App extends React.Component {
         this.removeTileFromCell = this.removeTileFromCell.bind(this);
         this.addTileToCell = this.addTileToCell.bind(this);
         this.initializeGame = this.initializeGame.bind(this);
+        this.setInitialData = this.setInitialData.bind(this);
 
         this.bag = new BagOfTiles();
         this.maxNoOfTiles = 7;
@@ -391,126 +496,40 @@ class App extends React.Component {
     }
 
     initializeGame() {
-        this.setState(async (prevState, props) => {
-            if (prevState.gameState.state === "to-start") {
-                let { value: noOfPlayers } = await Swal.fire({
-                    title: "Enter the number of players",
-                    input: "text",
-                    showCancelButton: true,
-                    inputValidator: (value) => {
-                        if (isNaN(value.trim()) || value.trim() === "") {
-                            return "You must enter a number";
-                        }
-                        let num = parseInt(value, 10);
-                        if (num < this.state.gameState.minNoOfPlayers || num > this.state.gameState.maxNoOfPlayers) {
-                            return "Number of players must between 2 to 4";
-                        }
-                    }
-                });
-                noOfPlayers = parseInt(noOfPlayers, 10);
-                let inputHtml = "";
-                for (let i = 1; i <= noOfPlayers; i++) {
-                    inputHtml += 'Player ' + i + ': <input id="swal-input' + i + '" class="swal2-input" />\n';
-                }
-                let { value: playerNames } = await Swal.fire({
-                    title: "Enter the names of the players",
-                    html: inputHtml,
-                    focusConfirm: false,
-                    allowOutsideClick: false,
-                    preConfirm: () => {
-                        let retArr = [];
-                        for (let i = 1; i <= noOfPlayers; i++) {
-                            retArr.push(document.getElementById("swal-input" + i).value);
-                        }
-                        return retArr;
-                    }
-                });
-                let gameState = { state: "started", noOfPlayers: noOfPlayers, maxNoOfPlayers: 4, minNoOfPlayers: 2 };
-                let racks = {};
-                for (let i = 1; i <= noOfPlayers; i++) {
-                    let letters = this.bag.getTiles(this.maxNoOfTiles);
-                    racks["rack-" + i] = { rack: <Rack letters={letters} id={"rack-" + i} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters };
-                }
-                let players = {};
-                for (let i = 1; i <= noOfPlayers; i++) {
-                    let playerID = "player-" + i;
-                    let rackID = "rack-" + i;
-                    players[playerID] = {
-                        player:
-                            <Player id={playerID} name={playerNames[i - 1]}>
-                                {racks[rackID].rack}
-                            </Player>,
-                        rack: rackID
-                    }
-                }
-                return { racks: racks, players: players, gameState: gameState };
-            } else if (prevState.gameState.state === "started") {
-                return prevState;
-            } else if (prevState.gameState.state === "ended") {
-                Swal.fire({
-                    title: 'Do you want to start a new game?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#20c94d',
-                    cancelButtonColor: '#cc3018',
-                    confirmButtonText: 'Yes, start a new game!'
-                }).then(async (result) => {
-                    if (result.value) {
-                        let { value: noOfPlayers } = await Swal.fire({
-                            title: "Enter the number of players",
-                            input: "text",
-                            showCancelButton: true,
-                            inputValidator: (value) => {
-                                if (isNaN(value.trim()) || value.trim() === "") {
-                                    return "You must enter a number";
-                                }
-                                let num = parseInt(value, 10);
-                                if (num < this.state.gameState.minNoOfPlayers || num > this.state.gameState.maxNoOfPlayers) {
-                                    return "Number of players must between 2 to 4";
-                                }
-                            }
-                        });
-                        noOfPlayers = parseInt(noOfPlayers, 10);
-                        let inputHtml = "";
-                        for (let i = 1; i <= noOfPlayers; i++) {
-                            inputHtml += 'Player ' + i + ': <input id="swal-input' + i + '" class="swal2-input" />\n';
-                        }
-                        let { value: playerNames } = await Swal.fire({
-                            title: "Enter the names of the players",
-                            html: inputHtml,
-                            focusConfirm: false,
-                            allowOutsideClick: false,
-                            preConfirm: () => {
-                                let retArr = [];
-                                for (let i = 1; i <= noOfPlayers; i++) {
-                                    retArr.push(document.getElementById("swal-input" + i).value);
-                                }
-                                return retArr;
-                            }
-                        });
-                        let gameState = { state: "started", noOfPlayers: noOfPlayers, maxNoOfPlayers: 4, minNoOfPlayers: 2 };
-                        let racks = {};
-                        for (let i = 1; i <= noOfPlayers; i++) {
-                            let letters = this.bag.getTiles(this.maxNoOfTiles);
-                            racks["rack-" + i] = { rack: <Rack letters={letters} id={"rack-" + i} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters };
-                        }
-                        let players = {};
-                        for (let i = 1; i <= noOfPlayers; i++) {
-                            let playerID = "player-" + i;
-                            let rackID = "rack-" + i;
-                            players[playerID] = {
-                                player:
-                                    <Player id={playerID} name={playerNames[i - 1]}>
-                                        {racks[rackID].rack}
-                                    </Player>,
-                                rack: rackID
-                            }
-                        }
-                        return { racks: racks, players: players, gameState: gameState };
-                    }
-                });
+        let newGameState = {};
+        Object.assign(newGameState, this.state.gameState);
+        newGameState["state"] = "initializing";
+        this.setState({ gameState: newGameState });
+    }
+
+    setInitialData(names) {
+        if (names === null) {
+            let newGameState = {};
+            Object.assign(newGameState, this.state.gameState);
+            newGameState["state"] = "to-start";
+            this.setState({ gameState: newGameState });
+        } else {
+            let noOfPlayers = names.length;
+            let gameState = { state: "started", noOfPlayers: noOfPlayers, maxNoOfPlayers: 4, minNoOfPlayers: 2 };
+            let racks = {};
+            for (let i = 1; i <= noOfPlayers; i++) {
+                let letters = this.bag.getTiles(this.maxNoOfTiles);
+                racks["rack-" + i] = { rack: <Rack letters={letters} id={"rack-" + i} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters };
             }
-        });
+            let players = {};
+            for (let i = 1; i <= noOfPlayers; i++) {
+                let playerID = "player-" + i;
+                let rackID = "rack-" + i;
+                players[playerID] = {
+                    player:
+                        <Player id={playerID} name={names[i - 1]}>
+                            {racks[rackID].rack}
+                        </Player>,
+                    rack: rackID
+                }
+            }
+            this.setState({ racks: racks, players: players, gameState: gameState });
+        }
     }
 
     render() {
@@ -524,6 +543,36 @@ class App extends React.Component {
                     {board}
                     <div className="flex flex-col flex-1">
                     </div>
+                </div>
+            );
+        } else if (this.state.gameState.state === "started") {
+            console.log(this.state.players);
+            if (this.state.gameState.noOfPlayers === 2) {
+                console.log(this.state.players);
+                toRender = (
+                    <div className="flex flex-row">
+                        <div className="flex flex-col flex-1">
+                            {this.state.players["player-1"].player}
+                        </div>
+                        {board}
+                        <div className="flex flex-col flex-1">
+                            {this.state.players["player-2"].player}
+                        </div>
+                    </div>
+                );
+            }
+        } else if (this.state.gameState.state === "initializing") {
+            toRender = (
+                <div className="flex flex-row">
+                    <div className="flex-1"></div>
+                    <div className="flex-1 flex flex-row">
+                        <div className="flex-1"></div>
+                        <div className="flex-1">
+                            <StartForm finalSubmit={this.setInitialData} minPlayers={this.state.gameState.minNoOfPlayers} maxPlayers={this.state.gameState.maxNoOfPlayers} />
+                        </div>
+                        <div className="flex-1"></div>
+                    </div>
+                    <div className="flex-1"></div>
                 </div>
             );
         }
