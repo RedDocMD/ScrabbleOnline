@@ -26,7 +26,7 @@ class Player extends React.Component {
                 </div>
                 <div className="flex justify-around">
                     <button className="player-btn">Make move</button>
-                    <button className="player-btn">Change tiles</button>
+                    <button className="player-btn" onClick={this.props.changeTiles}>Change tiles</button>
                     <button className="player-btn" onClick={this.props.passMove}>Pass turn</button>
                 </div>
                 <div className="text-white name">Hell</div>

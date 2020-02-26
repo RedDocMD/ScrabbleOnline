@@ -23,6 +23,18 @@ class BagOfTiles {
         }
         return tiles;
     }
+
+    returnTiles(letters) {
+        for (let i = 0; i < letters.length; i++) {
+            for (let j = 0; j < this.tileLeft.length; j++) {
+                if (letters[i] < this.tileLeft[j]) {
+                    this.tileLeft.splice(j - 1, 0, letters[i]);
+                    break;
+                }
+            }
+        }
+        console.log(this.tileLeft);
+    }
 }
 
 export default BagOfTiles

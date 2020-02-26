@@ -17,6 +17,7 @@ class App extends React.Component {
         this.initializeGame = this.initializeGame.bind(this);
         this.setInitialData = this.setInitialData.bind(this);
         this.passMove = this.passMove.bind(this);
+        this.changeTiles = this.changeTiles.bind(this);
 
         this.bag = new BagOfTiles();
         this.maxNoOfTiles = 7;
@@ -65,7 +66,7 @@ class App extends React.Component {
                 let playerID = rackID.replace("rack", "player");
                 players[playerID] = {
                     player:
-                        <Player id={playerID} active={this.state.activePlayer} passMove={this.passMove}>
+                        <Player id={playerID} active={this.state.activePlayer} passMove={this.passMove} changeTiles={this.changeTiles}>
                             {newState[rackID].rack}
                         </Player>,
                     rack: rackID
@@ -98,7 +99,7 @@ class App extends React.Component {
                 let playerID = rackID.replace("rack", "player");
                 players[playerID] = {
                     player:
-                        <Player id={playerID} active={this.state.activePlayer} passMove={this.passMove}>
+                        <Player id={playerID} active={this.state.activePlayer} passMove={this.passMove} changeTiles={this.changeTiles}>
                             {newState[rackID].rack}
                         </Player>,
                     rack: rackID
@@ -169,7 +170,7 @@ class App extends React.Component {
                 let rackID = "rack-" + i;
                 players[playerID] = {
                     player:
-                        <Player id={playerID} name={names[i - 1]} active={activePlayer} passMove={this.passMove}>
+                        <Player id={playerID} name={names[i - 1]} active={activePlayer} passMove={this.passMove} changeTiles={this.changeTiles}>
                             {racks[rackID].rack}
                         </Player>,
                     rack: rackID
@@ -190,13 +191,47 @@ class App extends React.Component {
                 let rackID = "rack-" + i;
                 players[playerID] = {
                     player:
-                        <Player id={playerID} active={activePlayer} passMove={this.passMove}>
+                        <Player id={playerID} active={activePlayer} passMove={this.passMove} changeTiles={this.changeTiles}>
                             {state.racks[rackID].rack}
                         </Player>,
                     rack: rackID
                 };
             }
             return { activePlayer: activePlayer, players: players };
+        });
+    }
+
+    changeTiles() {
+        this.setState((state, props) => {
+            let rackToReset = "rack-" + state.activePlayer;
+            this.bag.returnTiles(state.racks[rackToReset].rack);
+            let newLetters = this.bag.getTiles(this.maxNoOfTiles);
+            let racks = {};
+            for (let key in state.racks) {
+                if (state.racks.hasOwnProperty(key)) {
+                    if (key === rackToReset) {
+                        racks[key] = { rack: <Rack letters={newLetters} id={key} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: newLetters };
+                    } else {
+                        racks[key] = state.racks[key];
+                    }
+                }
+            }
+            let activePlayer = state.activePlayer;
+            activePlayer = activePlayer + 1;
+            activePlayer = activePlayer > state.gameState.noOfPlayers ? 1 : activePlayer;
+            let players = {};
+            for (let i = 1; i <= state.gameState.noOfPlayers; i++) {
+                let playerID = "player-" + i;
+                let rackID = "rack-" + i;
+                players[playerID] = {
+                    player:
+                        <Player id={playerID} active={activePlayer} passMove={this.passMove} changeTiles={this.changeTiles}>
+                            {racks[rackID].rack}
+                        </Player>,
+                    rack: rackID
+                };
+            }
+            return { activePlayer: activePlayer, players: players, racks: racks };
         });
     }
 
