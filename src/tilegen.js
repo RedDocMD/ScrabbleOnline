@@ -33,7 +33,6 @@ class BagOfTiles {
                 }
             }
         }
-        console.log(this.tileLeft);
     }
 }
 

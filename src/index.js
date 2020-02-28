@@ -55,7 +55,7 @@ class App extends React.Component {
             for (let key in prevState.racks) {
                 if (prevState.racks.hasOwnProperty(key)) {
                     if (key === rack) {
-                        newState[key] = { rack: <Rack letters={newLetters} id={key} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: newLetters };
+                        newState[key] = { rack: <Rack active={this.state.activePlayer} letters={newLetters} id={key} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: newLetters };
                     } else {
                         newState[key] = prevState.racks[key];
                     }
@@ -88,7 +88,7 @@ class App extends React.Component {
             for (let key in prevState.racks) {
                 if (prevState.racks.hasOwnProperty(key)) {
                     if (key === rack) {
-                        newState[key] = { rack: <Rack letters={newLetters} id={key} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: newLetters };
+                        newState[key] = { rack: <Rack active={this.state.activePlayer} letters={newLetters} id={key} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: newLetters };
                     } else {
                         newState[key] = prevState.racks[key];
                     }
@@ -158,13 +158,13 @@ class App extends React.Component {
         } else {
             let noOfPlayers = names.length;
             let gameState = { state: "started", noOfPlayers: noOfPlayers, maxNoOfPlayers: 4, minNoOfPlayers: 2 };
+            let activePlayer = 1;
             let racks = {};
             for (let i = 1; i <= noOfPlayers; i++) {
                 let letters = this.bag.getTiles(this.maxNoOfTiles);
-                racks["rack-" + i] = { rack: <Rack letters={letters} id={"rack-" + i} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters };
+                racks["rack-" + i] = { rack: <Rack active={activePlayer} letters={letters} id={"rack-" + i} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters };
             }
             let players = {};
-            let activePlayer = 1;
             for (let i = 1; i <= noOfPlayers; i++) {
                 let playerID = "player-" + i;
                 let rackID = "rack-" + i;
@@ -180,59 +180,63 @@ class App extends React.Component {
         }
     }
 
-    passMove() {
-        this.setState((state, props) => {
-            let activePlayer = state.activePlayer;
-            activePlayer = activePlayer + 1;
-            activePlayer = activePlayer > state.gameState.noOfPlayers ? 1 : activePlayer;
-            let players = {};
-            for (let i = 1; i <= state.gameState.noOfPlayers; i++) {
-                let playerID = "player-" + i;
-                let rackID = "rack-" + i;
-                players[playerID] = {
-                    player:
-                        <Player id={playerID} active={activePlayer} passMove={this.passMove} changeTiles={this.changeTiles}>
-                            {state.racks[rackID].rack}
-                        </Player>,
-                    rack: rackID
-                };
-            }
-            return { activePlayer: activePlayer, players: players };
-        });
+    passMove(id) {
+        if (id === "player-" + this.state.activePlayer) {
+            this.setState((state, props) => {
+                let activePlayer = state.activePlayer;
+                activePlayer = activePlayer + 1;
+                activePlayer = activePlayer > state.gameState.noOfPlayers ? 1 : activePlayer;
+                let players = {};
+                for (let i = 1; i <= state.gameState.noOfPlayers; i++) {
+                    let playerID = "player-" + i;
+                    let rackID = "rack-" + i;
+                    players[playerID] = {
+                        player:
+                            <Player id={playerID} active={activePlayer} passMove={this.passMove} changeTiles={this.changeTiles}>
+                                {state.racks[rackID].rack}
+                            </Player>,
+                        rack: rackID
+                    };
+                }
+                return { activePlayer: activePlayer, players: players };
+            });
+        }
     }
 
-    changeTiles() {
-        this.setState((state, props) => {
-            let rackToReset = "rack-" + state.activePlayer;
-            this.bag.returnTiles(state.racks[rackToReset].rack);
-            let newLetters = this.bag.getTiles(this.maxNoOfTiles);
-            let racks = {};
-            for (let key in state.racks) {
-                if (state.racks.hasOwnProperty(key)) {
-                    if (key === rackToReset) {
-                        racks[key] = { rack: <Rack letters={newLetters} id={key} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: newLetters };
-                    } else {
-                        racks[key] = state.racks[key];
+    changeTiles(id) {
+        if (id === "player-" + this.state.activePlayer) {
+            this.setState((state, props) => {
+                let rackToReset = "rack-" + state.activePlayer;
+                this.bag.returnTiles(state.racks[rackToReset].rack);
+                let newLetters = this.bag.getTiles(this.maxNoOfTiles);
+                let racks = {};
+                let activePlayer = state.activePlayer;
+                activePlayer = activePlayer + 1;
+                activePlayer = activePlayer > state.gameState.noOfPlayers ? 1 : activePlayer;
+                for (let key in state.racks) {
+                    if (state.racks.hasOwnProperty(key)) {
+                        if (key === rackToReset) {
+                            racks[key] = { rack: <Rack active={activePlayer} letters={newLetters} id={key} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: newLetters };
+                        } else {
+                            racks[key] = state.racks[key];
+                        }
                     }
                 }
-            }
-            let activePlayer = state.activePlayer;
-            activePlayer = activePlayer + 1;
-            activePlayer = activePlayer > state.gameState.noOfPlayers ? 1 : activePlayer;
-            let players = {};
-            for (let i = 1; i <= state.gameState.noOfPlayers; i++) {
-                let playerID = "player-" + i;
-                let rackID = "rack-" + i;
-                players[playerID] = {
-                    player:
-                        <Player id={playerID} active={activePlayer} passMove={this.passMove} changeTiles={this.changeTiles}>
-                            {racks[rackID].rack}
-                        </Player>,
-                    rack: rackID
-                };
-            }
-            return { activePlayer: activePlayer, players: players, racks: racks };
-        });
+                let players = {};
+                for (let i = 1; i <= state.gameState.noOfPlayers; i++) {
+                    let playerID = "player-" + i;
+                    let rackID = "rack-" + i;
+                    players[playerID] = {
+                        player:
+                            <Player id={playerID} active={activePlayer} passMove={this.passMove} changeTiles={this.changeTiles}>
+                                {racks[rackID].rack}
+                            </Player>,
+                        rack: rackID
+                    };
+                }
+                return { activePlayer: activePlayer, players: players, racks: racks };
+            });
+        }
     }
 
     render() {

@@ -20,12 +20,21 @@ class Tile extends React.Component {
     }
 
     render() {
-        return (
-            <span className={"tile " + this.props.className + " " + this.state.cursorType} draggable onDragStart={this.dragStart} onMouseEnter={this.mouseEnter}>
-                <div className="tile-text">{this.props.letter}</div>
-                <div className="tile-value">{this.props.value === 0 ? "" : this.props.value}</div>
-            </span>
-        );
+        if (this.props.isActive) {
+            return (
+                <span className={"tile " + this.props.className + " " + this.state.cursorType} draggable onDragStart={this.dragStart} onMouseEnter={this.mouseEnter}>
+                    <div className="tile-text">{this.props.letter}</div>
+                    <div className="tile-value">{this.props.value === 0 ? "" : this.props.value}</div>
+                </span>
+            );
+        } else {
+            return (
+                <span className={"tile " + this.props.className + " " + this.state.cursorType}>
+                    <div className="tile-text">{this.props.letter}</div>
+                    <div className="tile-value">{this.props.value === 0 ? "" : this.props.value}</div>
+                </span>
+            );
+        }
     }
 }
 

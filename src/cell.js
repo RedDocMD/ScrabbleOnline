@@ -32,7 +32,7 @@ class Cell extends React.Component {
         if (this.props.content !== "") {
             let content = letterValues[this.props.content];
             return (
-                <Tile letter={content.letter} dataItem={content.letter} value={content.value} className="in-cell-tile" row={this.props.row} column={this.props.column} />
+                <Tile isActive={true} letter={content.letter} dataItem={content.letter} value={content.value} className="in-cell-tile" row={this.props.row} column={this.props.column} />
             );
         } else {
             return (
