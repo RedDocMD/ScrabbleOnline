@@ -38,7 +38,6 @@ class Rack extends React.Component {
     render() {
         let tiles = [];
         let isActive = ("rack-" + this.props.active) === this.props.id;
-        console.log(this.props.id + " " + isActive);
         this.props.letters.forEach(letter => {
             let letterObj = letterValues[letter];
             tiles.push(<Tile isActive={isActive} letter={letterObj.letter} key={letter + " " + this.props.id + " " + Math.random()} value={letterObj.value} dataItem={letter} rack={this.props.id} className="normal-tile" />);

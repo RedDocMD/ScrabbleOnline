@@ -37,7 +37,16 @@ class App extends React.Component {
 
         let gameState = { state: "to-start", noOfPlayers: 0, maxNoOfPlayers: 4, minNoOfPlayers: 2 };
 
-        this.state = { racks: racks, cellContent: cellContent, players: players, gameState: gameState, activePlayer: undefined };
+        let tilesPlacedThisMove = [];
+
+        this.state = {
+            racks: racks,
+            cellContent: cellContent,
+            players: players,
+            gameState: gameState,
+            activePlayer: undefined,
+            tilesPlacedThisMove: tilesPlacedThisMove
+        };
     }
 
     removeTileFromRack(letter, rack) {
@@ -105,7 +114,11 @@ class App extends React.Component {
                     rack: rackID
                 }
             }
-            return { racks: newState, players: players };
+            let newTilesPlacedThisMove = prevState.tilesPlacedThisMove.slice();
+            for (let i = 0; i < newTilesPlacedThisMove.length; i++) {
+                if (newTilesPlacedThisMove[i].letter === letter) newTilesPlacedThisMove.splice(i, 1);
+            }
+            return { racks: newState, players: players, tilesPlacedThisMove: newTilesPlacedThisMove };
         });
     }
 
@@ -120,7 +133,9 @@ class App extends React.Component {
                 }
             }
             cellContent[row][col] = content;
-            return { cellContent: cellContent };
+            let newTilesPlacedThisMove = prevState.tilesPlacedThisMove.slice();
+            newTilesPlacedThisMove.push({ letter: content, row: row, col: col });
+            return { cellContent: cellContent, tilesPlacedThisMove: newTilesPlacedThisMove };
         });
     }
 
@@ -135,7 +150,16 @@ class App extends React.Component {
                 }
             }
             cellContent[row][col] = "";
-            return { cellContent: cellContent };
+
+            let newTilesPlacedThisMove = prevState.tilesPlacedThisMove.slice();
+            for (let i = 0; i < newTilesPlacedThisMove.length; i++) {
+                let move = newTilesPlacedThisMove[i];
+                if (move.row === row && move.col === col) {
+                    newTilesPlacedThisMove.splice(i, 1);
+                    break;
+                }
+            }
+            return { cellContent: cellContent, tilesPlacedThisMove: newTilesPlacedThisMove };
         });
 
     }
@@ -187,18 +211,37 @@ class App extends React.Component {
                 activePlayer = activePlayer + 1;
                 activePlayer = activePlayer > state.gameState.noOfPlayers ? 1 : activePlayer;
                 let players = {};
+                let racks = {};
+                let oldContent = state.cellContent;
+                let cellContent = new Array(this.rows);
+                for (let i = 0; i < this.rows; i++) cellContent[i] = new Array(this.columns);
+                for (let i = 0; i < this.rows; i++) {
+                    for (let j = 0; j < this.columns; j++) {
+                        cellContent[i][j] = oldContent[i][j];
+                    }
+                }
+                for (let i = 1; i <= state.gameState.noOfPlayers; i++) {
+                    let letters = state.racks["rack-" + i].letters;
+                    if (i === this.state.activePlayer) {
+                        for (let j = 0; j < state.tilesPlacedThisMove.length; j++) {
+                            letters.push(state.tilesPlacedThisMove[j].letter);
+                            cellContent[state.tilesPlacedThisMove[j].row][state.tilesPlacedThisMove[j].col] = "";
+                        }
+                    }
+                    racks["rack-" + i] = { rack: <Rack active={activePlayer} letters={letters} id={"rack-" + i} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: letters };
+                }
                 for (let i = 1; i <= state.gameState.noOfPlayers; i++) {
                     let playerID = "player-" + i;
                     let rackID = "rack-" + i;
                     players[playerID] = {
                         player:
                             <Player id={playerID} active={activePlayer} passMove={this.passMove} changeTiles={this.changeTiles}>
-                                {state.racks[rackID].rack}
+                                {racks[rackID].rack}
                             </Player>,
                         rack: rackID
                     };
                 }
-                return { activePlayer: activePlayer, players: players };
+                return { activePlayer: activePlayer, players: players, racks: racks, tilesPlacedThisMove: [], cellContent: cellContent };
             });
         }
     }
@@ -206,8 +249,21 @@ class App extends React.Component {
     changeTiles(id) {
         if (id === "player-" + this.state.activePlayer) {
             this.setState((state, props) => {
+                let oldContent = state.cellContent;
+                let cellContent = new Array(this.rows);
+                for (let i = 0; i < this.rows; i++) cellContent[i] = new Array(this.columns);
+                for (let i = 0; i < this.rows; i++) {
+                    for (let j = 0; j < this.columns; j++) {
+                        cellContent[i][j] = oldContent[i][j];
+                    }
+                }
                 let rackToReset = "rack-" + state.activePlayer;
-                this.bag.returnTiles(state.racks[rackToReset].rack);
+                let oldLetters = state.racks[rackToReset].letters;
+                for (let j = 0; j < state.tilesPlacedThisMove.length; j++) {
+                    oldLetters.push(state.tilesPlacedThisMove[j].letter);
+                    cellContent[state.tilesPlacedThisMove[j].row][state.tilesPlacedThisMove[j].col] = "";
+                }
+                this.bag.returnTiles(oldLetters);
                 let newLetters = this.bag.getTiles(this.maxNoOfTiles);
                 let racks = {};
                 let activePlayer = state.activePlayer;
@@ -218,7 +274,7 @@ class App extends React.Component {
                         if (key === rackToReset) {
                             racks[key] = { rack: <Rack active={activePlayer} letters={newLetters} id={key} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: newLetters };
                         } else {
-                            racks[key] = state.racks[key];
+                            racks[key] = { rack: <Rack active={activePlayer} letters={state.racks[key].letters} id={key} addTileToRack={this.addTileToRack} removeTileFromRack={this.removeTileFromRack} removeTileFromCell={this.removeTileFromCell} />, letters: state.racks[key].letters };
                         }
                     }
                 }
@@ -234,7 +290,7 @@ class App extends React.Component {
                         rack: rackID
                     };
                 }
-                return { activePlayer: activePlayer, players: players, racks: racks };
+                return { activePlayer: activePlayer, players: players, racks: racks, tilesPlacedThisMove: [], cellContent: cellContent };
             });
         }
     }
