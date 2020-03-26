@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 class Player extends React.Component {
     constructor(props) {
@@ -21,13 +21,26 @@ class Player extends React.Component {
                 <div className="text-4xl font-medium text-center  underline">
                     {this.playerName}
                 </div>
+                <div className="flex justify-around">{this.props.children}</div>
                 <div className="flex justify-around">
-                    {this.props.children}
-                </div>
-                <div className="flex justify-around">
-                    <button className="player-btn">Make move</button>
-                    <button className="player-btn" onClick={(ev) => this.props.changeTiles(this.props.id)}>Change tiles</button>
-                    <button className="player-btn" onClick={(ev) => this.props.passMove(this.props.id)}>Pass turn</button>
+                    <button
+                        className="player-btn"
+                        onClick={ev => this.props.makeMove(this.props.id)}
+                    >
+                        Make move
+                    </button>
+                    <button
+                        className="player-btn"
+                        onClick={ev => this.props.changeTiles(this.props.id)}
+                    >
+                        Change tiles
+                    </button>
+                    <button
+                        className="player-btn"
+                        onClick={ev => this.props.passMove(this.props.id)}
+                    >
+                        Pass turn
+                    </button>
                 </div>
                 <div className="text-white name">Hell</div>
             </div>
@@ -35,4 +48,4 @@ class Player extends React.Component {
     }
 }
 
-export default Player
+export default Player;

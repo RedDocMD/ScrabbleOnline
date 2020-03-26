@@ -1,11 +1,12 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import Board from "./board";
-import BagOfTiles from "./tilegen";
-import Rack from "./rack";
-import Player from "./player";
-import StartForm from "./start-form";
-import "./index.css";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import Board from './board';
+import BagOfTiles from './tilegen';
+import Rack from './rack';
+import Player from './player';
+import StartForm from './start-form';
+import './index.css';
+import Swal from 'sweetalert2';
 
 class App extends React.Component {
     constructor(props) {
@@ -33,12 +34,12 @@ class App extends React.Component {
             cellContent[i] = new Array(this.columns);
         for (let i = 0; i < this.rows; i++) {
             for (let j = 0; j < this.columns; j++) {
-                cellContent[i][j] = "";
+                cellContent[i][j] = '';
             }
         }
 
         let gameState = {
-            state: "to-start",
+            state: 'to-start',
             noOfPlayers: 0,
             maxNoOfPlayers: 4,
             minNoOfPlayers: 2
@@ -91,7 +92,7 @@ class App extends React.Component {
             }
             let players = {};
             for (let rackID in newState) {
-                let playerID = rackID.replace("rack", "player");
+                let playerID = rackID.replace('rack', 'player');
                 players[playerID] = {
                     player: (
                         <Player
@@ -99,6 +100,7 @@ class App extends React.Component {
                             active={this.state.activePlayer}
                             passMove={this.passMove}
                             changeTiles={this.changeTiles}
+                            makeMove={this.makeMove}
                         >
                             {newState[rackID].rack}
                         </Player>
@@ -142,7 +144,7 @@ class App extends React.Component {
             }
             let players = {};
             for (let rackID in newState) {
-                let playerID = rackID.replace("rack", "player");
+                let playerID = rackID.replace('rack', 'player');
                 players[playerID] = {
                     player: (
                         <Player
@@ -150,6 +152,7 @@ class App extends React.Component {
                             active={this.state.activePlayer}
                             passMove={this.passMove}
                             changeTiles={this.changeTiles}
+                            makeMove={this.makeMove}
                         >
                             {newState[rackID].rack}
                         </Player>
@@ -206,7 +209,7 @@ class App extends React.Component {
                     cellContent[i][j] = oldContent[i][j];
                 }
             }
-            cellContent[row][col] = "";
+            cellContent[row][col] = '';
 
             let newTilesPlacedThisMove = prevState.tilesPlacedThisMove.slice();
             for (let i = 0; i < newTilesPlacedThisMove.length; i++) {
@@ -225,12 +228,12 @@ class App extends React.Component {
 
     initializeGame() {
         if (
-            this.state.gameState.state === "to-start" ||
-            this.state.gameState.state === "ended"
+            this.state.gameState.state === 'to-start' ||
+            this.state.gameState.state === 'ended'
         ) {
             let newGameState = {};
             Object.assign(newGameState, this.state.gameState);
-            newGameState["state"] = "initializing";
+            newGameState['state'] = 'initializing';
             this.setState({ gameState: newGameState });
         }
     }
@@ -239,12 +242,12 @@ class App extends React.Component {
         if (names === null) {
             let newGameState = {};
             Object.assign(newGameState, this.state.gameState);
-            newGameState["state"] = "to-start";
+            newGameState['state'] = 'to-start';
             this.setState({ gameState: newGameState });
         } else {
             let noOfPlayers = names.length;
             let gameState = {
-                state: "started",
+                state: 'started',
                 noOfPlayers: noOfPlayers,
                 maxNoOfPlayers: 4,
                 minNoOfPlayers: 2
@@ -253,12 +256,12 @@ class App extends React.Component {
             let racks = {};
             for (let i = 1; i <= noOfPlayers; i++) {
                 let letters = this.bag.getTiles(this.maxNoOfTiles);
-                racks["rack-" + i] = {
+                racks['rack-' + i] = {
                     rack: (
                         <Rack
                             active={activePlayer}
                             letters={letters}
-                            id={"rack-" + i}
+                            id={'rack-' + i}
                             addTileToRack={this.addTileToRack}
                             removeTileFromRack={this.removeTileFromRack}
                             removeTileFromCell={this.removeTileFromCell}
@@ -269,8 +272,8 @@ class App extends React.Component {
             }
             let players = {};
             for (let i = 1; i <= noOfPlayers; i++) {
-                let playerID = "player-" + i;
-                let rackID = "rack-" + i;
+                let playerID = 'player-' + i;
+                let rackID = 'rack-' + i;
                 players[playerID] = {
                     player: (
                         <Player
@@ -279,6 +282,7 @@ class App extends React.Component {
                             active={activePlayer}
                             passMove={this.passMove}
                             changeTiles={this.changeTiles}
+                            makeMove={this.makeMove}
                         >
                             {racks[rackID].rack}
                         </Player>
@@ -296,7 +300,7 @@ class App extends React.Component {
     }
 
     passMove(id) {
-        if (id === "player-" + this.state.activePlayer) {
+        if (id === 'player-' + this.state.activePlayer) {
             this.setState((state, props) => {
                 let activePlayer = state.activePlayer;
                 activePlayer = activePlayer + 1;
@@ -316,7 +320,7 @@ class App extends React.Component {
                     }
                 }
                 for (let i = 1; i <= state.gameState.noOfPlayers; i++) {
-                    let letters = state.racks["rack-" + i].letters;
+                    let letters = state.racks['rack-' + i].letters;
                     if (i === this.state.activePlayer) {
                         for (
                             let j = 0;
@@ -326,15 +330,15 @@ class App extends React.Component {
                             letters.push(state.tilesPlacedThisMove[j].letter);
                             cellContent[state.tilesPlacedThisMove[j].row][
                                 state.tilesPlacedThisMove[j].col
-                            ] = "";
+                            ] = '';
                         }
                     }
-                    racks["rack-" + i] = {
+                    racks['rack-' + i] = {
                         rack: (
                             <Rack
                                 active={activePlayer}
                                 letters={letters}
-                                id={"rack-" + i}
+                                id={'rack-' + i}
                                 addTileToRack={this.addTileToRack}
                                 removeTileFromRack={this.removeTileFromRack}
                                 removeTileFromCell={this.removeTileFromCell}
@@ -344,8 +348,8 @@ class App extends React.Component {
                     };
                 }
                 for (let i = 1; i <= state.gameState.noOfPlayers; i++) {
-                    let playerID = "player-" + i;
-                    let rackID = "rack-" + i;
+                    let playerID = 'player-' + i;
+                    let rackID = 'rack-' + i;
                     players[playerID] = {
                         player: (
                             <Player
@@ -353,6 +357,7 @@ class App extends React.Component {
                                 active={activePlayer}
                                 passMove={this.passMove}
                                 changeTiles={this.changeTiles}
+                                makeMove={this.makeMove}
                             >
                                 {racks[rackID].rack}
                             </Player>
@@ -372,7 +377,7 @@ class App extends React.Component {
     }
 
     changeTiles(id) {
-        if (id === "player-" + this.state.activePlayer) {
+        if (id === 'player-' + this.state.activePlayer) {
             this.setState((state, props) => {
                 let oldContent = state.cellContent;
                 let cellContent = new Array(this.rows);
@@ -383,13 +388,13 @@ class App extends React.Component {
                         cellContent[i][j] = oldContent[i][j];
                     }
                 }
-                let rackToReset = "rack-" + state.activePlayer;
+                let rackToReset = 'rack-' + state.activePlayer;
                 let oldLetters = state.racks[rackToReset].letters;
                 for (let j = 0; j < state.tilesPlacedThisMove.length; j++) {
                     oldLetters.push(state.tilesPlacedThisMove[j].letter);
                     cellContent[state.tilesPlacedThisMove[j].row][
                         state.tilesPlacedThisMove[j].col
-                    ] = "";
+                    ] = '';
                 }
                 this.bag.returnTiles(oldLetters);
                 let newLetters = this.bag.getTiles(this.maxNoOfTiles);
@@ -443,8 +448,8 @@ class App extends React.Component {
                 }
                 let players = {};
                 for (let i = 1; i <= state.gameState.noOfPlayers; i++) {
-                    let playerID = "player-" + i;
-                    let rackID = "rack-" + i;
+                    let playerID = 'player-' + i;
+                    let rackID = 'rack-' + i;
                     players[playerID] = {
                         player: (
                             <Player
@@ -452,6 +457,7 @@ class App extends React.Component {
                                 active={activePlayer}
                                 passMove={this.passMove}
                                 changeTiles={this.changeTiles}
+                                makeMove={this.makeMove}
                             >
                                 {racks[rackID].rack}
                             </Player>
@@ -470,7 +476,64 @@ class App extends React.Component {
         }
     }
 
-    makeMove() {}
+    makeMove(id) {
+        if (id === 'player-' + this.state.activePlayer) {
+            this.setState((state, props) => {
+                let tilesPlaced = state.tilesPlacedThisMove;
+                if (tilesPlaced.length === 0) return state;
+
+                const checkInRow = placed => {
+                    let row = null;
+                    for (let key in placed) {
+                        if (row === null) row = placed[key].row;
+                        else if (row !== placed[key].row) return false;
+                    }
+                    return true;
+                };
+                const checkInColumn = placed => {
+                    let col = null;
+                    for (let key in placed) {
+                        if (col === null) col = placed[key].col;
+                        else if (col !== placed[key].col) return false;
+                    }
+                    return true;
+                };
+                let orientation = null;
+                if (checkInRow(tilesPlaced)) orientation = 'row';
+                else if (checkInColumn(tilesPlaced)) orientation = 'col';
+                else {
+                    Swal.fire({
+                        title: 'Invalid move!',
+                        text: 'Moves must be in a row or a column.',
+                        icon: 'error',
+                        confirmButtonText: 'Continue'
+                    });
+                    return state;
+                }
+
+                const checkIfExtends = (placed, orientation) => {
+                    if (orientation === 'row') {
+                        placed.sort((a, b) => {
+                            return a.col < b.col;
+                        });
+                        let minCol = placed[0].col;
+                        let maxCol = placed[placed.length - 1].col;
+                        let row = placed[0].row;
+                        let config = Array.new();
+                        if (
+                            minCol > 0 &&
+                            state.cellContent[row][minCol - 1] !== ''
+                        )
+                            config.push('left');
+                        if (
+                            maxCol < this.columns &&
+                            state.cellContent[row][maxCol + 1] !== 'right'
+                        );
+                    }
+                };
+            });
+        }
+    }
 
     render() {
         let board = (
@@ -484,7 +547,7 @@ class App extends React.Component {
             />
         );
         let toRender = <div></div>;
-        if (this.state.gameState.state === "to-start") {
+        if (this.state.gameState.state === 'to-start') {
             toRender = (
                 <div className="flex flex-row">
                     <div className="flex flex-col flex-1"></div>
@@ -492,16 +555,16 @@ class App extends React.Component {
                     <div className="flex flex-col flex-1"></div>
                 </div>
             );
-        } else if (this.state.gameState.state === "started") {
+        } else if (this.state.gameState.state === 'started') {
             if (this.state.gameState.noOfPlayers === 2) {
                 toRender = (
                     <div className="flex flex-row">
                         <div className="flex flex-col flex-1">
-                            {this.state.players["player-1"].player}
+                            {this.state.players['player-1'].player}
                         </div>
                         {board}
                         <div className="flex flex-col flex-1">
-                            {this.state.players["player-2"].player}
+                            {this.state.players['player-2'].player}
                         </div>
                     </div>
                 );
@@ -509,12 +572,12 @@ class App extends React.Component {
                 toRender = (
                     <div className="flex flex-row">
                         <div className="flex flex-col flex-1">
-                            {this.state.players["player-1"].player}
-                            {this.state.players["player-3"].player}
+                            {this.state.players['player-1'].player}
+                            {this.state.players['player-3'].player}
                         </div>
                         {board}
                         <div className="flex flex-col flex-1">
-                            {this.state.players["player-2"].player}
+                            {this.state.players['player-2'].player}
                         </div>
                     </div>
                 );
@@ -522,18 +585,18 @@ class App extends React.Component {
                 toRender = (
                     <div className="flex flex-row">
                         <div className="flex flex-col flex-1">
-                            {this.state.players["player-1"].player}
-                            {this.state.players["player-4"].player}
+                            {this.state.players['player-1'].player}
+                            {this.state.players['player-4'].player}
                         </div>
                         {board}
                         <div className="flex flex-col flex-1">
-                            {this.state.players["player-2"].player}
-                            {this.state.players["player-3"].player}
+                            {this.state.players['player-2'].player}
+                            {this.state.players['player-3'].player}
                         </div>
                     </div>
                 );
             }
-        } else if (this.state.gameState.state === "initializing") {
+        } else if (this.state.gameState.state === 'initializing') {
             toRender = (
                 <div className="flex flex-row">
                     <div className="flex-1"></div>
@@ -575,4 +638,4 @@ class App extends React.Component {
     }
 }
 
-ReactDOM.render(<App />, document.getElementById("root"));
+ReactDOM.render(<App />, document.getElementById('root'));
