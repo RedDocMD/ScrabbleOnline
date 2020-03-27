@@ -479,7 +479,7 @@ class App extends React.Component {
     makeMove(id) {
         if (id === 'player-' + this.state.activePlayer) {
             this.setState((state, props) => {
-                let tilesPlaced = state.tilesPlacedThisMove;
+                let tilesPlaced = state.tilesPlacedThisMove.slice();
                 if (tilesPlaced.length === 0) return state;
 
                 const checkInRow = placed => {
@@ -626,23 +626,103 @@ class App extends React.Component {
                         let stopCol = maxCol;
                         if (config.indexOf('right') >= 0) {
                             startCol = minCol - 2;
-                            while (cells[row][startCol] !== '') --startCol;
+                            while (startCol > 0 && cells[row][startCol] !== '')
+                                --startCol;
                             ++startCol;
                         }
                         if (config.indexOf('left') >= 0) {
                             stopCol = maxCol + 2;
-                            while (cells[row][stopCol] !== '') ++stopCol;
+                            while (
+                                stopCol < this.columns &&
+                                cells[row][stopCol] !== ''
+                            )
+                                ++stopCol;
                             --stopCol;
                         }
                         words.push({
                             start: startCol,
                             stop: stopCol,
+                            other: row,
                             orientation: 'row'
                         });
                         if (config.indexOf('bottom-left') >= 0) {
+                            let stopRow = row + 2;
+                            while (
+                                stopRow < this.rows &&
+                                cells[stopRow][minCol] !== ''
+                            )
+                                stopRow++;
+                            --stopRow;
+                            words.push({
+                                start: row,
+                                stop: stopRow,
+                                other: minCol,
+                                orientation: 'column'
+                            });
+                        }
+                        if (config.indexOf('bottom-right') >= 0) {
+                            let stopRow = row + 2;
+                            while (
+                                stopRow < this.rows &&
+                                cells[stopRow][maxCol] !== ''
+                            )
+                                stopRow++;
+                            --stopRow;
+                            words.push({
+                                start: row,
+                                stop: stopRow,
+                                other: maxCol,
+                                orientation: 'column'
+                            });
+                        }
+                        if (config.indexOf('top-left') >= 0) {
+                            let startRow = row - 2;
+                            while (
+                                startRow > 0 &&
+                                cells[startRow][minCol] !== ''
+                            )
+                                startRow--;
+                            ++startRow;
+                            words.push({
+                                start: startRow,
+                                stop: row,
+                                other: minCol,
+                                orientation: 'column'
+                            });
+                        }
+                        if (config.indexOf('top-right') >= 0) {
+                            let startRow = row - 2;
+                            while (
+                                startRow > 0 &&
+                                cells[startRow][maxCol] !== ''
+                            )
+                                startRow--;
+                            ++startRow;
+                            words.push({
+                                start: startRow,
+                                stop: row,
+                                other: maxCol,
+                                orientation: 'column'
+                            });
                         }
                     }
+                    return words;
                 };
+
+                let words = getWordLimits(
+                    tilesPlaced,
+                    state.cellContent,
+                    config
+                );
+                if (words.length === 0) {
+                    Swal.fire({
+                        title: 'Invalid move!',
+                        text: 'New tiles must extend or hook on previous word',
+                        icon: 'error',
+                        confirmButtonText: 'Continue'
+                    });
+                    return state;
+                }
             });
         }
     }
