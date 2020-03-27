@@ -612,6 +612,37 @@ class App extends React.Component {
                     });
                     return state;
                 }
+
+                const getWordLimits = (placed, cells, config) => {
+                    let words = Array.new();
+                    if (config === 'row') {
+                        placed.sort((a, b) => {
+                            return a.col < b.col;
+                        });
+                        let minCol = placed[0].col;
+                        let maxCol = placed[placed.length - 1].col;
+                        let row = placed[0].row;
+                        let startCol = minCol;
+                        let stopCol = maxCol;
+                        if (config.indexOf('right') >= 0) {
+                            startCol = minCol - 2;
+                            while (cells[row][startCol] !== '') --startCol;
+                            ++startCol;
+                        }
+                        if (config.indexOf('left') >= 0) {
+                            stopCol = maxCol + 2;
+                            while (cells[row][stopCol] !== '') ++stopCol;
+                            --stopCol;
+                        }
+                        words.push({
+                            start: startCol,
+                            stop: stopCol,
+                            orientation: 'row'
+                        });
+                        if (config.indexOf('bottom-left') >= 0) {
+                        }
+                    }
+                };
             });
         }
     }
