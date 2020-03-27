@@ -1,8 +1,8 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
-body{
+body {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -113,7 +113,7 @@ body{
 }
 
 .player-btn {
-    @apply bg-blue-300 px-4 py-2 rounded font-light;    
+    @apply bg-blue-300 px-4 py-2 rounded font-light;
 }
 
 .name {

@@ -2,7 +2,7 @@ import letterValues from './letter-values';
 
 class BagOfTiles {
     constructor() {
-        let tilesLeft = ["", ""];
+        let tilesLeft = ['', ''];
         for (let letterCode = 0; letterCode < 26; letterCode++) {
             let letter = String.fromCharCode(65 + letterCode);
             let nos = letterValues[letter].nos;
@@ -36,4 +36,4 @@ class BagOfTiles {
     }
 }
 
-export default BagOfTiles
+export default BagOfTiles;

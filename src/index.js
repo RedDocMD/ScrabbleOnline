@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Board from './board';
+import { Board, getCellTypes } from './board';
 import BagOfTiles from './tilegen';
 import Rack from './rack';
 import Player from './player';
@@ -723,6 +723,7 @@ class App extends React.Component {
                     });
                     return state;
                 }
+                let cellTypes = getCellTypes(this.rows);
             });
         }
     }

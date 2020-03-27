@@ -1,22 +1,22 @@
-import React from "react";
+import React from 'react';
 
 class Player extends React.Component {
     constructor(props) {
         super(props);
         this.playerName = this.props.name;
-        this.backgroundColor = "bg-white";
-        if (this.props.id === "player-" + this.props.active) {
-            this.backgroundColor = "bg-blue-100";
+        this.backgroundColor = 'bg-white';
+        if (this.props.id === 'player-' + this.props.active) {
+            this.backgroundColor = 'bg-blue-100';
         }
     }
 
     render() {
-        this.backgroundColor = "bg-white";
-        if (this.props.id === "player-" + this.props.active) {
-            this.backgroundColor = "bg-blue-100";
+        this.backgroundColor = 'bg-white';
+        if (this.props.id === 'player-' + this.props.active) {
+            this.backgroundColor = 'bg-blue-100';
         }
         return (
-            <div className={"flex-auto flex flex-col " + this.backgroundColor}>
+            <div className={'flex-auto flex flex-col ' + this.backgroundColor}>
                 <div className="text-white name">Hell</div>
                 <div className="text-4xl font-medium text-center  underline">
                     {this.playerName}
