@@ -80,4 +80,4 @@ class Board extends React.Component {
     }
 }
 
-export default { Board, getCellTypes };
+export { Board, getCellTypes };

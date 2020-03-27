@@ -5,6 +5,7 @@ import BagOfTiles from './tilegen';
 import Rack from './rack';
 import Player from './player';
 import StartForm from './start-form';
+import letterValues from './letter-values';
 import './index.css';
 import Swal from 'sweetalert2';
 
@@ -47,13 +48,19 @@ class App extends React.Component {
 
         let tilesPlacedThisMove = [];
 
+        let points = [];
+
+        let moveCount = 0;
+
         this.state = {
             racks: racks,
             cellContent: cellContent,
             players: players,
             gameState: gameState,
             activePlayer: undefined,
-            tilesPlacedThisMove: tilesPlacedThisMove
+            tilesPlacedThisMove: tilesPlacedThisMove,
+            points: points,
+            moveCount: moveCount
         };
     }
 
@@ -290,11 +297,14 @@ class App extends React.Component {
                     rack: rackID
                 };
             }
+            let points = [];
+            for (let i = 0; i < noOfPlayers; i++) points.push(0);
             this.setState({
                 racks: racks,
                 players: players,
                 gameState: gameState,
-                activePlayer: activePlayer
+                activePlayer: activePlayer,
+                points: points
             });
         }
     }
@@ -370,7 +380,8 @@ class App extends React.Component {
                     players: players,
                     racks: racks,
                     tilesPlacedThisMove: [],
-                    cellContent: cellContent
+                    cellContent: cellContent,
+                    moveCount: state.moveCount + 1
                 };
             });
         }
@@ -470,7 +481,8 @@ class App extends React.Component {
                     players: players,
                     racks: racks,
                     tilesPlacedThisMove: [],
-                    cellContent: cellContent
+                    cellContent: cellContent,
+                    moveCount: state.moveCount + 1
                 };
             });
         }
@@ -510,21 +522,19 @@ class App extends React.Component {
                     });
                     return state;
                 }
-
-                const checkWhereExtends = (placed, orientation) => {
+                const checkWhereExtends = (placedTiles, orientation) => {
+                    let config = [];
                     if (orientation === 'row') {
-                        placed.sort((a, b) => {
-                            return a.col < b.col;
+                        let placed = placedTiles.sort((a, b) => {
+                            return a.col - b.col;
                         });
                         let minCol = placed[0].col;
                         let maxCol = placed[placed.length - 1].col;
                         let row = placed[0].row;
-                        let config = Array.new();
                         let distance = maxCol - minCol + 1;
                         if (distance === placed.length + 1)
                             config.push('middle');
                         else if (distance !== placed.length) return config;
-
                         if (
                             minCol > 0 &&
                             state.cellContent[row][minCol - 1] !== ''
@@ -556,13 +566,12 @@ class App extends React.Component {
                         )
                             config.push('top-right');
                     } else {
-                        placed.sort((a, b) => {
-                            return a.row < b.row;
+                        let placed = placedTiles.sort((a, b) => {
+                            return a.row - b.row;
                         });
                         let minRow = placed[0].row;
                         let maxRow = placed[placed.length - 1].row;
                         let col = placed[0].col;
-                        let config = Array.new();
                         let distance = maxRow - minRow + 1;
                         if (distance === placed.length + 1)
                             config.push('middle');
@@ -602,8 +611,11 @@ class App extends React.Component {
                     return config;
                 };
 
+                console.log(tilesPlaced);
+                console.log(orientation);
                 let config = checkWhereExtends(tilesPlaced, orientation);
-                if (config.length === 0) {
+                console.log(config);
+                if (config.length === 0 && state.moveCount > 0) {
                     Swal.fire({
                         title: 'Invalid move!',
                         text: 'New tiles must extend or hook on previous word',
@@ -613,11 +625,11 @@ class App extends React.Component {
                     return state;
                 }
 
-                const getWordLimits = (placed, cells, config) => {
-                    let words = Array.new();
-                    if (config === 'row') {
+                const getWordLimits = (placed, cells, config, orientation) => {
+                    let words = [];
+                    if (orientation === 'row') {
                         placed.sort((a, b) => {
-                            return a.col < b.col;
+                            return a.col - b.col;
                         });
                         let minCol = placed[0].col;
                         let maxCol = placed[placed.length - 1].col;
@@ -705,6 +717,8 @@ class App extends React.Component {
                                 orientation: 'column'
                             });
                         }
+                    } else {
+                        // TODO: Implement this
                     }
                     return words;
                 };
@@ -712,8 +726,10 @@ class App extends React.Component {
                 let words = getWordLimits(
                     tilesPlaced,
                     state.cellContent,
-                    config
+                    config,
+                    orientation
                 );
+                console.log(words);
                 if (words.length === 0) {
                     Swal.fire({
                         title: 'Invalid move!',
@@ -724,6 +740,150 @@ class App extends React.Component {
                     return state;
                 }
                 let cellTypes = getCellTypes(this.rows);
+
+                const calculatePoints = (words, cells, cellTypes) => {
+                    let points = 0;
+                    for (let i = 0; i < words.length; i++) {
+                        let wordPoints = 0;
+                        let word = words[i];
+                        let doubleWord = false;
+                        let tripleWord = false;
+                        for (let j = word.start; j <= word.stop; j++) {
+                            if (word.orientation === 'row') {
+                                let point =
+                                    letterValues[cells[word.other][j]].value;
+                                if (
+                                    cellTypes[word.other][j] === 'double-letter'
+                                )
+                                    point *= 2;
+                                else if (
+                                    cellTypes[word.other][j] === 'triple-letter'
+                                )
+                                    point *= 3;
+                                wordPoints += point;
+
+                                if (cellTypes[word.other][j] === 'double-word')
+                                    doubleWord = true;
+                                else if (
+                                    cellTypes[word.other][j] === 'triple-word'
+                                )
+                                    tripleWord = true;
+                            } else {
+                                let point =
+                                    letterValues[cells[j][word.other]].value;
+                                if (
+                                    cellTypes[j][word.other] === 'double-letter'
+                                )
+                                    point *= 2;
+                                else if (
+                                    cellTypes[j][word.other] === 'triple-letter'
+                                )
+                                    point *= 3;
+                                wordPoints += point;
+                                if (cellTypes[j][word.other] === 'double-word')
+                                    doubleWord = true;
+                                else if (
+                                    cellTypes[j][word.other] === 'triple-word'
+                                )
+                                    tripleWord = true;
+                            }
+                        }
+                        if (doubleWord) wordPoints *= 2;
+                        if (tripleWord) wordPoints *= 3;
+                        points += wordPoints;
+                    }
+                    return points;
+                };
+                let point = calculatePoints(
+                    words,
+                    state.cellContent,
+                    cellTypes
+                );
+                if (tilesPlaced.length === 7) point += 7;
+
+                let points = state.points.slice();
+                points[state.activePlayer - 1] = point;
+                let rackToReset = 'rack-' + state.activePlayer;
+                let oldLetters = state.racks[rackToReset].letters;
+                let lettersToAdd = this.bag.getTiles(
+                    this.maxNoOfTiles - oldLetters.length
+                );
+                let newLetters = oldLetters.concat(lettersToAdd);
+                let racks = {};
+                let activePlayer = state.activePlayer;
+                activePlayer = activePlayer + 1;
+                activePlayer =
+                    activePlayer > state.gameState.noOfPlayers
+                        ? 1
+                        : activePlayer;
+                for (let key in state.racks) {
+                    if (state.racks.hasOwnProperty(key)) {
+                        if (key === rackToReset) {
+                            racks[key] = {
+                                rack: (
+                                    <Rack
+                                        active={activePlayer}
+                                        letters={newLetters}
+                                        id={key}
+                                        addTileToRack={this.addTileToRack}
+                                        removeTileFromRack={
+                                            this.removeTileFromRack
+                                        }
+                                        removeTileFromCell={
+                                            this.removeTileFromCell
+                                        }
+                                    />
+                                ),
+                                letters: newLetters
+                            };
+                        } else {
+                            racks[key] = {
+                                rack: (
+                                    <Rack
+                                        active={activePlayer}
+                                        letters={state.racks[key].letters}
+                                        id={key}
+                                        addTileToRack={this.addTileToRack}
+                                        removeTileFromRack={
+                                            this.removeTileFromRack
+                                        }
+                                        removeTileFromCell={
+                                            this.removeTileFromCell
+                                        }
+                                    />
+                                ),
+                                letters: state.racks[key].letters
+                            };
+                        }
+                    }
+                }
+                let players = {};
+                for (let i = 1; i <= state.gameState.noOfPlayers; i++) {
+                    let playerID = 'player-' + i;
+                    let rackID = 'rack-' + i;
+                    players[playerID] = {
+                        player: (
+                            <Player
+                                id={playerID}
+                                active={activePlayer}
+                                passMove={this.passMove}
+                                changeTiles={this.changeTiles}
+                                makeMove={this.makeMove}
+                            >
+                                {racks[rackID].rack}
+                            </Player>
+                        ),
+                        rack: rackID
+                    };
+                }
+                return {
+                    activePlayer: activePlayer,
+                    players: players,
+                    racks: racks,
+                    tilesPlacedThisMove: [],
+                    points: points,
+                    moveCount: state.moveCount + 1
+                };
             });
         }
     }
