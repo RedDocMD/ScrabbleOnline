@@ -511,7 +511,7 @@ class App extends React.Component {
                     return state;
                 }
 
-                const checkIfExtends = (placed, orientation) => {
+                const checkWhereExtends = (placed, orientation) => {
                     if (orientation === 'row') {
                         placed.sort((a, b) => {
                             return a.col < b.col;
@@ -520,17 +520,98 @@ class App extends React.Component {
                         let maxCol = placed[placed.length - 1].col;
                         let row = placed[0].row;
                         let config = Array.new();
+                        let distance = maxCol - minCol + 1;
+                        if (distance === placed.length + 1)
+                            config.push('middle');
+                        else if (distance !== placed.length) return config;
+
                         if (
                             minCol > 0 &&
                             state.cellContent[row][minCol - 1] !== ''
                         )
-                            config.push('left');
+                            config.push('right');
                         if (
                             maxCol < this.columns &&
-                            state.cellContent[row][maxCol + 1] !== 'right'
-                        );
+                            state.cellContent[row][maxCol + 1] !== ''
+                        )
+                            config.push('left');
+                        if (
+                            row > 0 &&
+                            state.cellContent[row - 1][minCol] !== ''
+                        )
+                            config.push('bottom-left');
+                        if (
+                            row > 0 &&
+                            state.cellContent[row - 1][maxCol] !== ''
+                        )
+                            config.push('bottom-right');
+                        if (
+                            row < this.rows &&
+                            state.cellContent[row + 1][minCol] !== ''
+                        )
+                            config.push('top-left');
+                        if (
+                            row < this.rows &&
+                            state.cellContent[row + 1][maxCol] !== ''
+                        )
+                            config.push('top-right');
+                    } else {
+                        placed.sort((a, b) => {
+                            return a.row < b.row;
+                        });
+                        let minRow = placed[0].row;
+                        let maxRow = placed[placed.length - 1].row;
+                        let col = placed[0].col;
+                        let config = Array.new();
+                        let distance = maxRow - minRow + 1;
+                        if (distance === placed.length + 1)
+                            config.push('middle');
+                        else if (distance !== placed.length) return config;
+
+                        if (
+                            col > 0 &&
+                            state.cellContent[minRow][col - 1] !== ''
+                        )
+                            config.push('right-top');
+                        if (
+                            col > 0 &&
+                            state.cellContent[maxRow][col - 1] !== ''
+                        )
+                            config.push('right-bottom');
+                        if (
+                            col < this.columns &&
+                            state.cellContent[minRow][col + 1] !== ''
+                        )
+                            config.push('left-top');
+                        if (
+                            col < this.columns &&
+                            state.cellContent[maxRow][col + 1] !== ''
+                        )
+                            config.push('left-bottom');
+                        if (
+                            minRow > 0 &&
+                            state.cellContent[minRow - 1][col] !== ''
+                        )
+                            config.push('bottom');
+                        if (
+                            maxRow < this.rows &&
+                            state.cellContent[maxRow + 1][col] !== ''
+                        )
+                            config.push('top');
                     }
+                    return config;
                 };
+
+                let config = checkWhereExtends(tilesPlaced, orientation);
+                if (config.length === 0) {
+                    Swal.fire({
+                        title: 'Invalid move!',
+                        text: 'New tiles must extend or hook on previous word',
+                        icon: 'error',
+                        confirmButtonText: 'Continue'
+                    });
+                    return state;
+                }
             });
         }
     }
