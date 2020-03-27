@@ -21,6 +21,7 @@ class App extends React.Component {
         this.passMove = this.passMove.bind(this);
         this.changeTiles = this.changeTiles.bind(this);
         this.makeMove = this.makeMove.bind(this);
+        this.showPoints = this.showPoints.bind(this);
 
         this.bag = new BagOfTiles();
         this.maxNoOfTiles = 7;
@@ -60,8 +61,30 @@ class App extends React.Component {
             activePlayer: undefined,
             tilesPlacedThisMove: tilesPlacedThisMove,
             points: points,
-            moveCount: moveCount
+            moveCount: moveCount,
+            names: undefined
         };
+    }
+
+    showPoints() {
+        if (this.state.activePlayer !== undefined) {
+            let html = '<ul>';
+            for (let i = 0; i < this.state.gameState.noOfPlayers; i++)
+                html =
+                    html +
+                    '<li>' +
+                    this.state.names[i] +
+                    ': ' +
+                    this.state.points[i] +
+                    '</li>';
+            html += '</ul>';
+            Swal.fire({
+                title: 'Points',
+                html: html,
+                icon: 'info',
+                confirmButtonText: 'Okay!'
+            });
+        }
     }
 
     removeTileFromRack(letter, rack) {
@@ -304,7 +327,8 @@ class App extends React.Component {
                 players: players,
                 gameState: gameState,
                 activePlayer: activePlayer,
-                points: points
+                points: points,
+                names: names
             });
         }
     }
@@ -541,7 +565,7 @@ class App extends React.Component {
                         )
                             config.push('right');
                         if (
-                            maxCol < this.columns &&
+                            maxCol < this.columns - 1 &&
                             state.cellContent[row][maxCol + 1] !== ''
                         )
                             config.push('left');
@@ -556,12 +580,12 @@ class App extends React.Component {
                         )
                             config.push('bottom-right');
                         if (
-                            row < this.rows &&
+                            row < this.rows - 1 &&
                             state.cellContent[row + 1][minCol] !== ''
                         )
                             config.push('top-left');
                         if (
-                            row < this.rows &&
+                            row < this.rows - 1 &&
                             state.cellContent[row + 1][maxCol] !== ''
                         )
                             config.push('top-right');
@@ -588,12 +612,12 @@ class App extends React.Component {
                         )
                             config.push('right-bottom');
                         if (
-                            col < this.columns &&
+                            col < this.column - 1 &&
                             state.cellContent[minRow][col + 1] !== ''
                         )
                             config.push('left-top');
                         if (
-                            col < this.columns &&
+                            col < this.columns - 1 &&
                             state.cellContent[maxRow][col + 1] !== ''
                         )
                             config.push('left-bottom');
@@ -603,7 +627,7 @@ class App extends React.Component {
                         )
                             config.push('bottom');
                         if (
-                            maxRow < this.rows &&
+                            maxRow < this.rows - 1 &&
                             state.cellContent[maxRow + 1][col] !== ''
                         )
                             config.push('top');
@@ -645,7 +669,7 @@ class App extends React.Component {
                         if (config.indexOf('left') >= 0) {
                             stopCol = maxCol + 2;
                             while (
-                                stopCol < this.columns &&
+                                stopCol < this.columns - 1 &&
                                 cells[row][stopCol] !== ''
                             )
                                 ++stopCol;
@@ -660,7 +684,7 @@ class App extends React.Component {
                         if (config.indexOf('bottom-left') >= 0) {
                             let stopRow = row + 2;
                             while (
-                                stopRow < this.rows &&
+                                stopRow < this.rows - 1 &&
                                 cells[stopRow][minCol] !== ''
                             )
                                 stopRow++;
@@ -675,7 +699,7 @@ class App extends React.Component {
                         if (config.indexOf('bottom-right') >= 0) {
                             let stopRow = row + 2;
                             while (
-                                stopRow < this.rows &&
+                                stopRow < this.rows - 1 &&
                                 cells[stopRow][maxCol] !== ''
                             )
                                 stopRow++;
@@ -742,7 +766,7 @@ class App extends React.Component {
                 let cellTypes = getCellTypes(this.rows);
 
                 const calculatePoints = (words, cells, cellTypes) => {
-                    let points = 0;
+                    let points = state.points[state.activePlayer - 1];
                     for (let i = 0; i < words.length; i++) {
                         let wordPoints = 0;
                         let word = words[i];
@@ -762,7 +786,11 @@ class App extends React.Component {
                                     point *= 3;
                                 wordPoints += point;
 
-                                if (cellTypes[word.other][j] === 'double-word')
+                                if (
+                                    cellTypes[word.other][j] ===
+                                        'double-word' ||
+                                    cellTypes[word.other][j] === 'star'
+                                )
                                     doubleWord = true;
                                 else if (
                                     cellTypes[word.other][j] === 'triple-word'
@@ -780,7 +808,11 @@ class App extends React.Component {
                                 )
                                     point *= 3;
                                 wordPoints += point;
-                                if (cellTypes[j][word.other] === 'double-word')
+                                if (
+                                    cellTypes[j][word.other] ===
+                                        'double-word' ||
+                                    cellTypes[word.other][j] === 'star'
+                                )
                                     doubleWord = true;
                                 else if (
                                     cellTypes[j][word.other] === 'triple-word'
@@ -799,7 +831,7 @@ class App extends React.Component {
                     state.cellContent,
                     cellTypes
                 );
-                if (tilesPlaced.length === 7) point += 7;
+                if (tilesPlaced.length === 7) point += 50;
 
                 let points = state.points.slice();
                 points[state.activePlayer - 1] = point;
@@ -980,7 +1012,10 @@ class App extends React.Component {
                         >
                             Start
                         </span>
-                        <span className="text-xl text-gray-400 hover:text-gray-200 align-text-bottom mr-4 mt-2 mb-2 cursor-pointer">
+                        <span
+                            className="text-xl text-gray-400 hover:text-gray-200 align-text-bottom mr-4 mt-2 mb-2 cursor-pointer"
+                            onClick={this.showPoints}
+                        >
                             Point
                         </span>
                     </span>
